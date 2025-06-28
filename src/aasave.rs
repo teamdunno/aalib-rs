@@ -1,0 +1,1180 @@
+use ::c2rust_bitfields;
+unsafe extern "C" {
+    fn fclose(__stream: *mut FILE) -> std::ffi::c_int;
+    fn fflush(__stream: *mut FILE) -> std::ffi::c_int;
+    fn fopen(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> *mut FILE;
+    fn fprintf(_: *mut FILE, _: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
+    fn sprintf(_: *mut std::ffi::c_char, _: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
+    fn fputs(__s: *const std::ffi::c_char, __stream: *mut FILE) -> std::ffi::c_int;
+    fn memcpy(
+        _: *mut std::ffi::c_void,
+        _: *const std::ffi::c_void,
+        _: std::ffi::c_ulong,
+    ) -> *mut std::ffi::c_void;
+    fn memset(
+        _: *mut std::ffi::c_void,
+        _: std::ffi::c_int,
+        _: std::ffi::c_ulong,
+    ) -> *mut std::ffi::c_void;
+    fn malloc(_: std::ffi::c_ulong) -> *mut std::ffi::c_void;
+    static aa_font16: aa_font;
+    static aa_fontline: aa_font;
+    static aa_fontcourier: aa_font;
+}
+pub type __off_t = std::ffi::c_long;
+pub type __off64_t = std::ffi::c_long;
+#[derive(Copy, Clone, BitfieldStruct)]
+#[repr(C)]
+pub struct _IO_FILE {
+    pub _flags: std::ffi::c_int,
+    pub _IO_read_ptr: *mut std::ffi::c_char,
+    pub _IO_read_end: *mut std::ffi::c_char,
+    pub _IO_read_base: *mut std::ffi::c_char,
+    pub _IO_write_base: *mut std::ffi::c_char,
+    pub _IO_write_ptr: *mut std::ffi::c_char,
+    pub _IO_write_end: *mut std::ffi::c_char,
+    pub _IO_buf_base: *mut std::ffi::c_char,
+    pub _IO_buf_end: *mut std::ffi::c_char,
+    pub _IO_save_base: *mut std::ffi::c_char,
+    pub _IO_backup_base: *mut std::ffi::c_char,
+    pub _IO_save_end: *mut std::ffi::c_char,
+    pub _chain: *mut _IO_FILE,
+    pub _fileno: std::ffi::c_int,
+    #[bitfield(name = "_flags2", ty = "std::ffi::c_int", bits = "0..=23")]
+    pub _flags2: [u8; 3],
+    pub _short_backupbuf: [std::ffi::c_char; 1],
+    pub _old_offset: __off_t,
+    pub _cur_column: std::ffi::c_ushort,
+    pub _vtable_offset: std::ffi::c_schar,
+    pub _shortbuf: [std::ffi::c_char; 1],
+    pub _lock: *mut std::ffi::c_void,
+    pub _offset: __off64_t,
+    pub _freeres_list: *mut _IO_FILE,
+    pub _freeres_buf: *mut std::ffi::c_void,
+    pub _prevchain: *mut *mut _IO_FILE,
+    pub _mode: std::ffi::c_int,
+    pub _unused2: [std::ffi::c_char; 20],
+}
+pub type _IO_lock_t = ();
+pub type FILE = _IO_FILE;
+pub type aa_attribute = std::ffi::c_uint;
+pub const AA_SPECIAL: aa_attribute = 5;
+pub const AA_REVERSE: aa_attribute = 4;
+pub const AA_BOLDFONT: aa_attribute = 3;
+pub const AA_BOLD: aa_attribute = 2;
+pub const AA_DIM: aa_attribute = 1;
+pub const AA_NORMAL: aa_attribute = 0;
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_driver {
+    pub shortname: *const std::ffi::c_char,
+    pub name: *const std::ffi::c_char,
+    pub init: Option<
+        unsafe extern "C" fn(
+            *const aa_hardware_params,
+            *const std::ffi::c_void,
+            *mut aa_hardware_params,
+            *mut *mut std::ffi::c_void,
+        ) -> std::ffi::c_int,
+    >,
+    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
+    pub getsize: Option<
+        unsafe extern "C" fn(*mut aa_context, *mut std::ffi::c_int, *mut std::ffi::c_int) -> (),
+    >,
+    pub setattr: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
+    pub print: Option<unsafe extern "C" fn(*mut aa_context, *const std::ffi::c_char) -> ()>,
+    pub gotoxy:
+        Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int, std::ffi::c_int) -> ()>,
+    pub flush: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
+    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_context {
+    pub driver: *const aa_driver,
+    pub kbddriver: *const aa_kbddriver,
+    pub mousedriver: *const aa_mousedriver,
+    pub params: aa_hardware_params,
+    pub driverparams: aa_hardware_params,
+    pub mulx: std::ffi::c_int,
+    pub muly: std::ffi::c_int,
+    pub imgwidth: std::ffi::c_int,
+    pub imgheight: std::ffi::c_int,
+    pub imagebuffer: *mut std::ffi::c_uchar,
+    pub textbuffer: *mut std::ffi::c_uchar,
+    pub attrbuffer: *mut std::ffi::c_uchar,
+    pub table: *mut std::ffi::c_ushort,
+    pub filltable: *mut std::ffi::c_ushort,
+    pub parameters: *mut parameters,
+    pub cursorx: std::ffi::c_int,
+    pub cursory: std::ffi::c_int,
+    pub cursorstate: std::ffi::c_int,
+    pub mousex: std::ffi::c_int,
+    pub mousey: std::ffi::c_int,
+    pub buttons: std::ffi::c_int,
+    pub mousemode: std::ffi::c_int,
+    pub resizehandler: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
+    pub driverdata: *mut std::ffi::c_void,
+    pub kbddriverdata: *mut std::ffi::c_void,
+    pub mousedriverdata: *mut std::ffi::c_void,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct parameters {
+    pub p: [std::ffi::c_uint; 5],
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_hardware_params {
+    pub font: *const aa_font,
+    pub supported: std::ffi::c_int,
+    pub minwidth: std::ffi::c_int,
+    pub minheight: std::ffi::c_int,
+    pub maxwidth: std::ffi::c_int,
+    pub maxheight: std::ffi::c_int,
+    pub recwidth: std::ffi::c_int,
+    pub recheight: std::ffi::c_int,
+    pub mmwidth: std::ffi::c_int,
+    pub mmheight: std::ffi::c_int,
+    pub width: std::ffi::c_int,
+    pub height: std::ffi::c_int,
+    pub dimmul: std::ffi::c_double,
+    pub boldmul: std::ffi::c_double,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_font {
+    pub data: *const std::ffi::c_uchar,
+    pub height: std::ffi::c_int,
+    pub name: *const std::ffi::c_char,
+    pub shortname: *const std::ffi::c_char,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_mousedriver {
+    pub shortname: *const std::ffi::c_char,
+    pub name: *const std::ffi::c_char,
+    pub flags: std::ffi::c_int,
+    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
+    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
+    pub getmouse: Option<
+        unsafe extern "C" fn(
+            *mut aa_context,
+            *mut std::ffi::c_int,
+            *mut std::ffi::c_int,
+            *mut std::ffi::c_int,
+        ) -> (),
+    >,
+    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_kbddriver {
+    pub shortname: *const std::ffi::c_char,
+    pub name: *const std::ffi::c_char,
+    pub flags: std::ffi::c_int,
+    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
+    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
+    pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_format {
+    pub width: std::ffi::c_int,
+    pub height: std::ffi::c_int,
+    pub pagewidth: std::ffi::c_int,
+    pub pageheight: std::ffi::c_int,
+    pub flags: std::ffi::c_int,
+    pub supported: std::ffi::c_int,
+    pub font: *const aa_font,
+    pub formatname: *const std::ffi::c_char,
+    pub extension: *const std::ffi::c_char,
+    pub head: *const std::ffi::c_char,
+    pub end: *const std::ffi::c_char,
+    pub newline: *const std::ffi::c_char,
+    pub prints: [*const std::ffi::c_char; 5],
+    pub begin: [*const std::ffi::c_char; 5],
+    pub ends: [*const std::ffi::c_char; 5],
+    pub conversions: *const *const std::ffi::c_char,
+}
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct aa_savedata {
+    pub name: *mut std::ffi::c_char,
+    pub format: *const aa_format,
+    pub file: *mut FILE,
+}
+static mut html_escapes: [*const std::ffi::c_char; 7] = [
+    b"<\0" as *const u8 as *const std::ffi::c_char,
+    b"&lt;\0" as *const u8 as *const std::ffi::c_char,
+    b">\0" as *const u8 as *const std::ffi::c_char,
+    b"&gt;\0" as *const u8 as *const std::ffi::c_char,
+    b"&\0" as *const u8 as *const std::ffi::c_char,
+    b"&amp;\0" as *const u8 as *const std::ffi::c_char,
+    0 as *const std::ffi::c_char,
+];
+static mut html_alt_escapes: [*const std::ffi::c_char; 9] = [
+    b"<\0" as *const u8 as *const std::ffi::c_char,
+    b"&lt;\0" as *const u8 as *const std::ffi::c_char,
+    b">\0" as *const u8 as *const std::ffi::c_char,
+    b"&gt;\0" as *const u8 as *const std::ffi::c_char,
+    b"&\0" as *const u8 as *const std::ffi::c_char,
+    b"&amp;\0" as *const u8 as *const std::ffi::c_char,
+    b"\"\0" as *const u8 as *const std::ffi::c_char,
+    b"&quot;\0" as *const u8 as *const std::ffi::c_char,
+    0 as *const std::ffi::c_char,
+];
+static mut irc_escapes: [*const std::ffi::c_char; 3] = [
+    b"@\0" as *const u8 as *const std::ffi::c_char,
+    b"@@\0" as *const u8 as *const std::ffi::c_char,
+    0 as *const std::ffi::c_char,
+];
+
+pub static mut aa_nhtml_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 79 as std::ffi::c_int,
+            height: 36 as std::ffi::c_int,
+            pagewidth: 79 as std::ffi::c_int,
+            pageheight: 36 as std::ffi::c_int,
+            flags: 0 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int | 4 as std::ffi::c_int | 8 as std::ffi::c_int
+                | 2 as std::ffi::c_int,
+            font: &aa_fontcourier as *const aa_font,
+            formatname: b"Nestcapeized html\0" as *const u8 as *const std::ffi::c_char,
+            extension: b".html\0" as *const u8 as *const std::ffi::c_char,
+            head: b"<HTML>\n<HEAD><TITLE>Ascii arted image done using aalib</TITLE>\n</HEAD>\n<BODY BGCOLOR=\"#000000\" TEXT=\"#b2b2b2\" LINK=\"#FFFFFF\">\n<FONT COLOR=#b2b2b2 SIZE=2><PRE>\n\0"
+                as *const u8 as *const std::ffi::c_char,
+            end: b"</PRE></FONT></BODY>\n</HTML>\n\0" as *const u8
+                as *const std::ffi::c_char,
+            newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"<FONT COLOR=\"686868\">\0" as *const u8 as *const std::ffi::c_char,
+                b"<FONT COLOR=\"ffffff\">\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"<B>\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"</FONT>\0" as *const u8 as *const std::ffi::c_char,
+                b"</FONT>\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"</B>\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: html_escapes.as_ptr(),
+        };
+        init
+    }
+};
+
+pub static mut aa_html_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 79 as std::ffi::c_int,
+            height: 25 as std::ffi::c_int,
+            pagewidth: 79 as std::ffi::c_int,
+            pageheight: 25 as std::ffi::c_int,
+            flags: 0 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int | 4 as std::ffi::c_int
+                | 8 as std::ffi::c_int,
+            font: 0 as *const aa_font,
+            formatname: b"Pure html\0" as *const u8 as *const std::ffi::c_char,
+            extension: b".html\0" as *const u8 as *const std::ffi::c_char,
+            head: b"<HTML>\n <HEAD> <TITLE>Ascii arted image done using aalib</TITLE>\n</HEAD>\n<BODY><PRE>\n\0"
+                as *const u8 as *const std::ffi::c_char,
+            end: b"</PRE></BODY>\n</HTML>\n\0" as *const u8 as *const std::ffi::c_char,
+            newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"<B>\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"<B>\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"</B>\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"</B>\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: html_escapes.as_ptr(),
+        };
+        init
+    }
+};
+
+pub static mut aa_ansi_format: aa_format = {
+    let mut init = aa_format {
+        width: 80 as std::ffi::c_int,
+        height: 25 as std::ffi::c_int,
+        pagewidth: 80 as std::ffi::c_int,
+        pageheight: 25 as std::ffi::c_int,
+        flags: 0 as std::ffi::c_int,
+        supported: 1 as std::ffi::c_int
+            | 4 as std::ffi::c_int
+            | 8 as std::ffi::c_int
+            | 16 as std::ffi::c_int
+            | 2 as std::ffi::c_int,
+        font: 0 as *const aa_font,
+        formatname: b"ANSI escape seqences\0" as *const u8 as *const std::ffi::c_char,
+        extension: b".ansi\0" as *const u8 as *const std::ffi::c_char,
+        head: b"\0" as *const u8 as *const std::ffi::c_char,
+        end: b"\0" as *const u8 as *const std::ffi::c_char,
+        newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+        prints: [
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        begin: [
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[8m\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[1m\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[1m\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[7m\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        ends: [
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[0;10m\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[0;10m\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[0;10m\0" as *const u8 as *const std::ffi::c_char,
+            b"\x1B[0;10m\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        conversions: 0 as *const *const std::ffi::c_char,
+    };
+    init
+};
+
+pub static mut aa_text_format: aa_format = {
+    let mut init = aa_format {
+        width: 80 as std::ffi::c_int,
+        height: 25 as std::ffi::c_int,
+        pagewidth: 80 as std::ffi::c_int,
+        pageheight: 25 as std::ffi::c_int,
+        flags: 0 as std::ffi::c_int,
+        supported: 1 as std::ffi::c_int,
+        font: 0 as *const aa_font,
+        formatname: b"Text file\0" as *const u8 as *const std::ffi::c_char,
+        extension: b".txt\0" as *const u8 as *const std::ffi::c_char,
+        head: b"\0" as *const u8 as *const std::ffi::c_char,
+        end: b"\0" as *const u8 as *const std::ffi::c_char,
+        newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+        prints: [
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        begin: [
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        ends: [
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        conversions: 0 as *const *const std::ffi::c_char,
+    };
+    init
+};
+
+pub static mut aa_more_format: aa_format = {
+    let mut init = aa_format {
+        width: 80 as std::ffi::c_int,
+        height: 25 as std::ffi::c_int,
+        pagewidth: 80 as std::ffi::c_int,
+        pageheight: 25 as std::ffi::c_int,
+        flags: 8 as std::ffi::c_int,
+        supported: 1 as std::ffi::c_int | 4 as std::ffi::c_int | 8 as std::ffi::c_int,
+        font: 0 as *const aa_font,
+        formatname: b"For more/less\0" as *const u8 as *const std::ffi::c_char,
+        extension: b".cat\0" as *const u8 as *const std::ffi::c_char,
+        head: b"\0" as *const u8 as *const std::ffi::c_char,
+        end: b"\0" as *const u8 as *const std::ffi::c_char,
+        newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+        prints: [
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\x08%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\x08%s\0" as *const u8 as *const std::ffi::c_char,
+            b"%s\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        begin: [
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        ends: [
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+            b"\0" as *const u8 as *const std::ffi::c_char,
+        ],
+        conversions: 0 as *const *const std::ffi::c_char,
+    };
+    init
+};
+
+pub static mut aa_hp_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 130 as std::ffi::c_int * 2 as std::ffi::c_int,
+            height: 64 as std::ffi::c_int * 2 as std::ffi::c_int - 1 as std::ffi::c_int,
+            pagewidth: 130 as std::ffi::c_int,
+            pageheight: 64 as std::ffi::c_int * 2 as std::ffi::c_int - 1 as std::ffi::c_int,
+            flags: 1 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int,
+            font: &aa_fontline as *const aa_font,
+            formatname: b"HP laser jet - A4 small font\0" as *const u8 as *const std::ffi::c_char,
+            extension: b".hp\0" as *const u8 as *const std::ffi::c_char,
+            head: b"\x1B(10U\x1B(s0p16.67h8.5v0s0b0T\x1B%%0A\x1B&/0U\x1B&/0Z\x1B&/24D\0"
+                as *const u8 as *const std::ffi::c_char,
+            end: b"\x0C\0" as *const u8 as *const std::ffi::c_char,
+            newline: b"\r\x1B=\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: 0 as *const *const std::ffi::c_char,
+        };
+        init
+    }
+};
+
+pub static mut aa_hp2_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 80 as std::ffi::c_int * 2 as std::ffi::c_int,
+            height: 64 as std::ffi::c_int - 1 as std::ffi::c_int,
+            pagewidth: 80 as std::ffi::c_int,
+            pageheight: 64 as std::ffi::c_int - 1 as std::ffi::c_int,
+            flags: 1 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int,
+            font: &aa_font16 as *const aa_font,
+            formatname: b"HP laser jet - A4 big font\0" as *const u8 as *const std::ffi::c_char,
+            extension: b".hp\0" as *const u8 as *const std::ffi::c_char,
+            head: b"\x1B(s7B\x1B*p0Y@\0" as *const u8 as *const std::ffi::c_char,
+            end: b"\x0C\0" as *const u8 as *const std::ffi::c_char,
+            newline: b"\r\n\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: 0 as *const *const std::ffi::c_char,
+        };
+        init
+    }
+};
+
+pub static mut aa_irc_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 70 as std::ffi::c_int,
+            height: 25 as std::ffi::c_int,
+            pagewidth: 70 as std::ffi::c_int,
+            pageheight: 25 as std::ffi::c_int,
+            flags: 0 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int | 4 as std::ffi::c_int | 16 as std::ffi::c_int,
+            font: &aa_font16 as *const aa_font,
+            formatname: b"For catting to an IRC channel\0" as *const u8 as *const std::ffi::c_char,
+            extension: b".irc\0" as *const u8 as *const std::ffi::c_char,
+            head: b"\0" as *const u8 as *const std::ffi::c_char,
+            end: b"\0" as *const u8 as *const std::ffi::c_char,
+            newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\x02\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\x16\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\x02\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\x16\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: 0 as *const *const std::ffi::c_char,
+        };
+        init
+    }
+};
+
+pub static mut aa_zephyr_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 70 as std::ffi::c_int,
+            height: 25 as std::ffi::c_int,
+            pagewidth: 70 as std::ffi::c_int,
+            pageheight: 25 as std::ffi::c_int,
+            flags: 0 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int | 2 as std::ffi::c_int | 4 as std::ffi::c_int,
+            font: &aa_font16 as *const aa_font,
+            formatname: b"For catting to an IRC channel II\0" as *const u8
+                as *const std::ffi::c_char,
+            extension: b".irc\0" as *const u8 as *const std::ffi::c_char,
+            head: b"\0" as *const u8 as *const std::ffi::c_char,
+            end: b"\0" as *const u8 as *const std::ffi::c_char,
+            newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"@color(gray50)\0" as *const u8 as *const std::ffi::c_char,
+                b"@b(\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"@color(black)\0" as *const u8 as *const std::ffi::c_char,
+                b")\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: irc_escapes.as_ptr(),
+        };
+        init
+    }
+};
+
+pub static mut aa_roff_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 70 as std::ffi::c_int,
+            height: 25 as std::ffi::c_int,
+            pagewidth: 70 as std::ffi::c_int,
+            pageheight: 25 as std::ffi::c_int,
+            flags: 0 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int | 4 as std::ffi::c_int,
+            font: &aa_font16 as *const aa_font,
+            formatname: b"For including in a man page\0" as *const u8 as *const std::ffi::c_char,
+            extension: b".man\0" as *const u8 as *const std::ffi::c_char,
+            head: b"\0" as *const u8 as *const std::ffi::c_char,
+            end: b"\0" as *const u8 as *const std::ffi::c_char,
+            newline: b"\n.br\n\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\n.B \0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\n\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: irc_escapes.as_ptr(),
+        };
+        init
+    }
+};
+
+pub static mut aa_html_alt_format: aa_format = unsafe {
+    {
+        let mut init = aa_format {
+            width: 79 as std::ffi::c_int,
+            height: 25 as std::ffi::c_int,
+            pagewidth: 79 as std::ffi::c_int,
+            pageheight: 25 as std::ffi::c_int,
+            flags: 0 as std::ffi::c_int,
+            supported: 1 as std::ffi::c_int,
+            font: 0 as *const aa_font,
+            formatname: b"HTML <IMG ALT= tag\0" as *const u8 as *const std::ffi::c_char,
+            extension: b".html\0" as *const u8 as *const std::ffi::c_char,
+            head: b"<PRE><IMG SRC=\"your image here\" ALT=\"\n\0" as *const u8
+                as *const std::ffi::c_char,
+            end: b"\"></PRE>\n\0" as *const u8 as *const std::ffi::c_char,
+            newline: b"\n\0" as *const u8 as *const std::ffi::c_char,
+            prints: [
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+                b"%s\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            begin: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            ends: [
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+                b"\0" as *const u8 as *const std::ffi::c_char,
+            ],
+            conversions: html_alt_escapes.as_ptr(),
+        };
+        init
+    }
+};
+pub static mut aa_formats: [*const aa_format; 12] = unsafe {
+    [
+        &aa_text_format as *const aa_format,
+        &aa_html_format as *const aa_format,
+        &aa_nhtml_format as *const aa_format,
+        &aa_html_alt_format as *const aa_format,
+        &aa_more_format as *const aa_format,
+        &aa_ansi_format as *const aa_format,
+        &aa_hp_format as *const aa_format,
+        &aa_hp2_format as *const aa_format,
+        &aa_irc_format as *const aa_format,
+        &aa_zephyr_format as *const aa_format,
+        &aa_roff_format as *const aa_format,
+        0 as *const aa_format,
+    ]
+};
+
+pub static mut save_d: aa_driver = unsafe {
+    {
+        let mut init = aa_driver {
+            shortname: b"save\0" as *const u8 as *const std::ffi::c_char,
+            name: b"Special driver for saving to files\0" as *const u8 as *const std::ffi::c_char,
+            init: Some(
+                save_init
+                    as unsafe extern "C" fn(
+                        *const aa_hardware_params,
+                        *const std::ffi::c_void,
+                        *mut aa_hardware_params,
+                        *mut *mut std::ffi::c_void,
+                    ) -> std::ffi::c_int,
+            ),
+            uninit: Some(save_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
+            getsize: Some(
+                save_getsize
+                    as unsafe extern "C" fn(
+                        *mut aa_context,
+                        *mut std::ffi::c_int,
+                        *mut std::ffi::c_int,
+                    ) -> (),
+            ),
+            setattr: None,
+            print: None,
+            gotoxy: Some(
+                save_gotoxy
+                    as unsafe extern "C" fn(
+                        *mut aa_context,
+                        std::ffi::c_int,
+                        std::ffi::c_int,
+                    ) -> (),
+            ),
+            flush: Some(save_flush as unsafe extern "C" fn(*mut aa_context) -> ()),
+            cursormode: None,
+        };
+        init
+    }
+};
+unsafe extern "C" fn build_conversions(
+    mut in_0: *const *const std::ffi::c_char,
+    mut conv: *mut *const std::ffi::c_char,
+) -> *mut *const std::ffi::c_char {
+    let mut c_0: std::ffi::c_uchar = 0;
+    memset(
+        conv as *mut std::ffi::c_void,
+        0 as std::ffi::c_int,
+        (::core::mem::size_of::<*mut std::ffi::c_char>() as std::ffi::c_ulong)
+            .wrapping_mul(256 as std::ffi::c_int as std::ffi::c_ulong),
+    );
+    if !in_0.is_null() {
+        while !(*in_0).is_null() && !(*in_0.offset(1 as std::ffi::c_int as isize)).is_null() {
+            c_0 = **in_0 as std::ffi::c_uchar;
+            in_0 = in_0.offset(1);
+            in_0;
+            let ref mut fresh0 = *conv.offset(c_0 as isize);
+            *fresh0 = *in_0;
+            in_0 = in_0.offset(1);
+            in_0;
+        }
+    }
+    return conv;
+}
+unsafe extern "C" fn save_init(
+    mut p: *const aa_hardware_params,
+    mut none: *const std::ffi::c_void,
+    mut dest: *mut aa_hardware_params,
+    mut data: *mut *mut std::ffi::c_void,
+) -> std::ffi::c_int {
+    let mut d: *const aa_savedata = none as *const aa_savedata;
+    static mut def: aa_hardware_params = aa_hardware_params {
+        font: 0 as *const aa_font,
+        supported: 0,
+        minwidth: 0,
+        minheight: 0,
+        maxwidth: 0,
+        maxheight: 0,
+        recwidth: 0,
+        recheight: 0,
+        mmwidth: 0,
+        mmheight: 0,
+        width: 0,
+        height: 0,
+        dimmul: 0.,
+        boldmul: 0.,
+    };
+    *data = malloc(::core::mem::size_of::<aa_savedata>() as std::ffi::c_ulong);
+    memcpy(
+        *data,
+        d as *const std::ffi::c_void,
+        ::core::mem::size_of::<aa_savedata>() as std::ffi::c_ulong,
+    );
+    *dest = def;
+    if ((*p).font).is_null() {
+        (*dest).font = (*(*d).format).font;
+    }
+    (*dest).width = (*(*d).format).width;
+    (*dest).height = (*(*d).format).height;
+    (*dest).supported = (*(*d).format).supported;
+    return 1 as std::ffi::c_int;
+}
+unsafe extern "C" fn save_uninit(mut c_0: *mut aa_context) {}
+unsafe extern "C" fn save_getsize(
+    mut c_0: *mut aa_context,
+    mut width: *mut std::ffi::c_int,
+    mut height: *mut std::ffi::c_int,
+) {
+}
+unsafe extern "C" fn save_gotoxy(
+    mut c_0: *mut aa_context,
+    mut x: std::ffi::c_int,
+    mut y: std::ffi::c_int,
+) {
+}
+static mut lastattr: std::ffi::c_int = 0;
+static mut f: *mut FILE = 0 as *const FILE as *mut FILE;
+static mut c: *mut aa_context = 0 as *const aa_context as *mut aa_context;
+unsafe extern "C" fn stop_tag() {
+    if lastattr != -(1 as std::ffi::c_int) {
+        fputs(
+            (*(*((*c).driverdata as *mut aa_savedata)).format).ends[lastattr as usize],
+            f,
+        );
+    }
+    lastattr = -(1 as std::ffi::c_int);
+}
+unsafe extern "C" fn start_tag(mut attr: std::ffi::c_int) {
+    if attr > 5 as std::ffi::c_int {
+        attr = 5 as std::ffi::c_int;
+    }
+    lastattr = attr;
+    fputs(
+        (*(*((*c).driverdata as *mut aa_savedata)).format).begin[lastattr as usize],
+        f,
+    );
+}
+unsafe extern "C" fn encodechar(
+    mut attr: std::ffi::c_uchar,
+    mut ch: std::ffi::c_uchar,
+    mut conversions: *mut *const std::ffi::c_char,
+) {
+    let mut chr: [std::ffi::c_char; 2] = [0; 2];
+    if (*(*((*c).driverdata as *mut aa_savedata)).format).flags & 8 as std::ffi::c_int != 0
+        && ch as std::ffi::c_int == ' ' as i32
+        && attr as std::ffi::c_int != AA_REVERSE as std::ffi::c_int
+    {
+        attr = AA_NORMAL as std::ffi::c_int as std::ffi::c_uchar;
+    }
+    if attr as std::ffi::c_int != lastattr {
+        stop_tag();
+        start_tag(attr as std::ffi::c_int);
+    }
+    if (*conversions.offset(ch as isize)).is_null() {
+        chr[0 as std::ffi::c_int as usize] = ch as std::ffi::c_char;
+        chr[1 as std::ffi::c_int as usize] = 0 as std::ffi::c_int as std::ffi::c_char;
+        fprintf(
+            f,
+            (*(*((*c).driverdata as *mut aa_savedata)).format).prints[attr as usize],
+            chr.as_mut_ptr(),
+            chr.as_mut_ptr(),
+            chr.as_mut_ptr(),
+            chr.as_mut_ptr(),
+        );
+    } else {
+        fprintf(
+            f,
+            (*(*((*c).driverdata as *mut aa_savedata)).format).prints[attr as usize],
+            *conversions.offset(ch as isize),
+            *conversions.offset(ch as isize),
+            *conversions.offset(ch as isize),
+            *conversions.offset(ch as isize),
+        );
+    };
+}
+unsafe extern "C" fn savearea(
+    mut x1: std::ffi::c_int,
+    mut y1: std::ffi::c_int,
+    mut x2: std::ffi::c_int,
+    mut y2: std::ffi::c_int,
+    mut conversions: *mut *const std::ffi::c_char,
+) {
+    let mut x: std::ffi::c_int = 0;
+    let mut y: std::ffi::c_int = 0;
+    fputs((*(*((*c).driverdata as *mut aa_savedata)).format).head, f);
+    lastattr = -(1 as std::ffi::c_int);
+    y = y1;
+    while y < y2 {
+        x = x1;
+        while x < x2 {
+            if x < 0 as std::ffi::c_int
+                || x >= (*c).params.width
+                || y < 0 as std::ffi::c_int
+                || y >= (*c).params.height
+            {
+                encodechar(
+                    AA_NORMAL as std::ffi::c_int as std::ffi::c_uchar,
+                    ' ' as i32 as std::ffi::c_uchar,
+                    conversions,
+                );
+            } else {
+                let mut pos: std::ffi::c_int = x + y * (*c).params.width;
+                encodechar(
+                    *((*c).attrbuffer).offset(pos as isize),
+                    *((*c).textbuffer).offset(pos as isize),
+                    conversions,
+                );
+            }
+            x += 1;
+            x;
+        }
+        stop_tag();
+        fputs(
+            (*(*((*c).driverdata as *mut aa_savedata)).format).newline,
+            f,
+        );
+        y += 1;
+        y;
+    }
+    fputs((*(*((*c).driverdata as *mut aa_savedata)).format).end, f);
+    fflush(f);
+}
+unsafe extern "C" fn save_flush(mut c1: *mut aa_context) {
+    let mut fname: [std::ffi::c_char; 4096] = [0; 4096];
+    let mut conversions: [*const std::ffi::c_char; 256] = [0 as *const std::ffi::c_char; 256];
+    c = c1;
+    build_conversions(
+        (*(*((*c).driverdata as *mut aa_savedata)).format).conversions,
+        conversions.as_mut_ptr(),
+    );
+    if (*(*((*c).driverdata as *mut aa_savedata)).format).flags & 1 as std::ffi::c_int != 0 {
+        let mut xpages: std::ffi::c_int = ((*c1).params.width
+            + (*(*((*c).driverdata as *mut aa_savedata)).format).pagewidth
+            - 1 as std::ffi::c_int)
+            / (*(*((*c).driverdata as *mut aa_savedata)).format).pagewidth;
+        let mut ypages: std::ffi::c_int = ((*c1).params.height
+            + (*(*((*c).driverdata as *mut aa_savedata)).format).pageheight
+            - 1 as std::ffi::c_int)
+            / (*(*((*c).driverdata as *mut aa_savedata)).format).pageheight;
+        let mut x: std::ffi::c_int = 0;
+        let mut y: std::ffi::c_int = 0;
+        x = 0 as std::ffi::c_int;
+        while x < xpages {
+            y = 0 as std::ffi::c_int;
+            while y < ypages {
+                if !((*((*c).driverdata as *mut aa_savedata)).name).is_null() {
+                    generate_filename(
+                        (*((*c).driverdata as *mut aa_savedata)).name,
+                        fname.as_mut_ptr(),
+                        x,
+                        y,
+                        1 as std::ffi::c_int,
+                        (*(*((*c).driverdata as *mut aa_savedata)).format).extension,
+                    );
+                    f = fopen(
+                        fname.as_mut_ptr(),
+                        b"w\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                } else {
+                    f = (*((*c).driverdata as *mut aa_savedata)).file;
+                }
+                if f.is_null() {
+                    return;
+                }
+                savearea(
+                    x * (*(*((*c).driverdata as *mut aa_savedata)).format).pagewidth,
+                    y * (*(*((*c).driverdata as *mut aa_savedata)).format).pageheight,
+                    (x + 1 as std::ffi::c_int)
+                        * (*(*((*c).driverdata as *mut aa_savedata)).format).pagewidth,
+                    (y + 1 as std::ffi::c_int)
+                        * (*(*((*c).driverdata as *mut aa_savedata)).format).pageheight,
+                    conversions.as_mut_ptr(),
+                );
+                if !((*((*c).driverdata as *mut aa_savedata)).name).is_null() {
+                    fclose(f);
+                }
+                y += 1;
+                y;
+            }
+            x += 1;
+            x;
+        }
+    } else {
+        if !((*((*c).driverdata as *mut aa_savedata)).name).is_null() {
+            generate_filename(
+                (*((*c).driverdata as *mut aa_savedata)).name,
+                fname.as_mut_ptr(),
+                0 as std::ffi::c_int,
+                0 as std::ffi::c_int,
+                0 as std::ffi::c_int,
+                (*(*((*c).driverdata as *mut aa_savedata)).format).extension,
+            );
+            f = fopen(
+                fname.as_mut_ptr(),
+                b"w\0" as *const u8 as *const std::ffi::c_char,
+            );
+        } else {
+            f = (*((*c).driverdata as *mut aa_savedata)).file;
+        }
+        if f.is_null() {
+            return;
+        }
+        savearea(
+            0 as std::ffi::c_int,
+            0 as std::ffi::c_int,
+            (*c1).params.width,
+            (*c1).params.height,
+            conversions.as_mut_ptr(),
+        );
+        if !((*((*c).driverdata as *mut aa_savedata)).name).is_null() {
+            fclose(f);
+        }
+    };
+}
+unsafe extern "C" fn generate_filename(
+    mut template: *const std::ffi::c_char,
+    mut result: *mut std::ffi::c_char,
+    mut x: std::ffi::c_int,
+    mut y: std::ffi::c_int,
+    mut pages: std::ffi::c_int,
+    mut extension: *const std::ffi::c_char,
+) -> *mut std::ffi::c_char {
+    let mut a: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
+    let mut b: *const std::ffi::c_char = 0 as *const std::ffi::c_char;
+    let mut end: *mut std::ffi::c_char = result.offset(4090 as std::ffi::c_int as isize);
+    b = template.offset(-(1 as std::ffi::c_int as isize));
+    a = result.offset(-(1 as std::ffi::c_int as isize));
+    loop {
+        b = b.offset(1);
+        a = a.offset(1);
+        *a = *b;
+        if !(*a != 0) {
+            break;
+        }
+        if a >= end {
+            break;
+        }
+        if !(*b as std::ffi::c_int == '%' as i32) {
+            continue;
+        }
+        match *b.offset(1 as std::ffi::c_int as isize) as std::ffi::c_int {
+            120 => {
+                a = a.offset(-1);
+                a;
+                if pages != 0 {
+                    let mut text: [std::ffi::c_char; 8] = [0; 8];
+                    let mut e: *mut std::ffi::c_char =
+                        text.as_mut_ptr().offset(-(1 as std::ffi::c_int as isize));
+                    sprintf(
+                        text.as_mut_ptr(),
+                        b"%i\0" as *const u8 as *const std::ffi::c_char,
+                        x,
+                    );
+                    loop {
+                        e = e.offset(1);
+                        a = a.offset(1);
+                        *a = *e;
+                        if !(*a != 0) {
+                            break;
+                        }
+                        if a >= end {
+                            break;
+                        }
+                    }
+                    a = a.offset(-1);
+                    a;
+                }
+                b = b.offset(1);
+                b;
+            }
+            121 => {
+                a = a.offset(-1);
+                a;
+                if pages != 0 {
+                    let mut text_0: [std::ffi::c_char; 8] = [0; 8];
+                    let mut e_0: *mut std::ffi::c_char =
+                        text_0.as_mut_ptr().offset(-(1 as std::ffi::c_int as isize));
+                    sprintf(
+                        text_0.as_mut_ptr(),
+                        b"%i\0" as *const u8 as *const std::ffi::c_char,
+                        y,
+                    );
+                    loop {
+                        e_0 = e_0.offset(1);
+                        a = a.offset(1);
+                        *a = *e_0;
+                        if !(*a != 0) {
+                            break;
+                        }
+                        if a >= end {
+                            break;
+                        }
+                    }
+                    a = a.offset(-1);
+                    a;
+                }
+                b = b.offset(1);
+                b;
+            }
+            99 => {
+                a = a.offset(-1);
+                a;
+                if pages != 0 {
+                    let mut text_1: [std::ffi::c_char; 8] = [0; 8];
+                    let mut e_1: *mut std::ffi::c_char =
+                        text_1.as_mut_ptr().offset(-(1 as std::ffi::c_int as isize));
+                    sprintf(
+                        text_1.as_mut_ptr(),
+                        b"_%i_%i\0" as *const u8 as *const std::ffi::c_char,
+                        x,
+                        y,
+                    );
+                    loop {
+                        e_1 = e_1.offset(1);
+                        a = a.offset(1);
+                        *a = *e_1;
+                        if !(*a != 0) {
+                            break;
+                        }
+                        if a >= end {
+                            break;
+                        }
+                    }
+                    a = a.offset(-1);
+                    a;
+                }
+                b = b.offset(1);
+                b;
+            }
+            101 => {
+                a = a.offset(-1);
+                a;
+                let mut e_2: *const std::ffi::c_char =
+                    extension.offset(-(1 as std::ffi::c_int as isize));
+                loop {
+                    e_2 = e_2.offset(1);
+                    a = a.offset(1);
+                    *a = *e_2;
+                    if !(*a != 0) {
+                        break;
+                    }
+                    if a >= end {
+                        break;
+                    }
+                }
+                a = a.offset(-1);
+                a;
+                b = b.offset(1);
+                b;
+            }
+            37 => {
+                a = a.offset(-1);
+                a;
+                b = b.offset(1);
+                b;
+            }
+            _ => {}
+        }
+        if *b == 0 {
+            break;
+        }
+    }
+    *a = 0 as std::ffi::c_int as std::ffi::c_char;
+    return result;
+}
