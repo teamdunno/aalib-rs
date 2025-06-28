@@ -1,5 +1,5 @@
-use super::aain::{aa_font, aa_hardware_params};
-use super::aarender::aa_renderparams;
+use super::aarec::aa_recommendhi;
+use super::aastructs::*;
 use ::c2rust_bitfields;
 unsafe extern "C" {
     fn strncpy(
@@ -27,7 +27,6 @@ unsafe extern "C" {
     static mut aa_displayrecommended: *mut aa_linkedlist;
     static mut aa_defparams: aa_hardware_params;
     static mut aa_defrenderparams: aa_renderparams;
-    fn aa_recommendhi(l: *mut *mut aa_linkedlist, name: *const std::ffi::c_char);
 }
 pub type __off_t = std::ffi::c_long;
 pub type __off64_t = std::ffi::c_long;
@@ -70,13 +69,6 @@ pub const AA_DITHERTYPES: aa_dithering_mode = 3;
 pub const AA_FLOYD_S: aa_dithering_mode = 2;
 pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
 pub const AA_NONE: aa_dithering_mode = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_linkedlist {
-    pub text: *mut std::ffi::c_char,
-    pub next: *mut aa_linkedlist,
-    pub previous: *mut aa_linkedlist,
-}
 #[inline]
 unsafe extern "C" fn atol(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_long {
     return strtol(

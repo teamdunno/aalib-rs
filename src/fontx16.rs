@@ -1,4 +1,4 @@
-use super::aafonts::aa_font;
+use super::aastructs::*;
 
 pub static mut fontX16data: [std::ffi::c_uchar; 3328] = [
     0x1 as std::ffi::c_int as std::ffi::c_uchar,

@@ -1,4 +1,4 @@
-use super::aain::aa_font;
+use super::aastructs::*;
 
 pub static mut fontX13Bdata: [std::ffi::c_uchar; 3328] = [
     0 as std::ffi::c_int as std::ffi::c_uchar,

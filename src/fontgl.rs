@@ -1,4 +1,4 @@
-use super::aafonts::aa_font;
+use super::aastructs::*;
 
 pub static mut fontgldata: [std::ffi::c_uchar; 1056] = [
     0 as std::ffi::c_int as std::ffi::c_uchar,

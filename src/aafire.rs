@@ -1,4 +1,14 @@
-use super::aarender::{aa_hardware_params, aa_renderparams};
+use super::aaflush::aa_flush;
+use super::aain::aa_getevent;
+use super::aakbdreg::aa_autoinitkbd;
+use super::aalib::{aa_close, aa_resize};
+use super::aaout::{aa_hidecursor, aa_resizehandler};
+use super::aaparse::aa_parseoptions;
+use super::aaregist::aa_autoinit;
+use super::aarender::{aa_getrenderparams, aa_renderpalette};
+
+use super::aastructs::*;
+
 use std::ffi::c_int;
 
 pub type parameters = c_int;
@@ -8,33 +18,6 @@ unsafe extern "C" {
     fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
     static aa_help: *const std::ffi::c_char;
     static mut aa_defparams: aa_hardware_params;
-    fn aa_autoinit(params_0: *const aa_hardware_params) -> *mut aa_context;
-    fn aa_autoinitkbd(context_0: *mut aa_context, mode: std::ffi::c_int) -> std::ffi::c_int;
-    fn aa_close(c: *mut aa_context);
-    fn aa_renderpalette(
-        c: *mut aa_context,
-        table_0: *const std::ffi::c_int,
-        p: *const aa_renderparams,
-        x1: std::ffi::c_int,
-        y1: std::ffi::c_int,
-        x2: std::ffi::c_int,
-        y2: std::ffi::c_int,
-    );
-    fn aa_getrenderparams() -> *mut aa_renderparams;
-    fn aa_flush(c: *mut aa_context);
-    fn aa_hidecursor(c: *mut aa_context);
-    fn aa_getevent(c: *mut aa_context, wait: std::ffi::c_int) -> std::ffi::c_int;
-    fn aa_resize(c: *mut aa_context) -> std::ffi::c_int;
-    fn aa_resizehandler(
-        c: *mut aa_context,
-        handler: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    );
-    fn aa_parseoptions(
-        p: *mut aa_hardware_params,
-        r: *mut aa_renderparams,
-        argc: *mut std::ffi::c_int,
-        argv: *mut *mut std::ffi::c_char,
-    ) -> std::ffi::c_int;
     fn rand() -> std::ffi::c_int;
     fn exit(_: std::ffi::c_int) -> !;
 }
@@ -42,101 +25,10 @@ pub const AA_DITHERTYPES: aa_dithering_mode = 3;
 pub const AA_FLOYD_S: aa_dithering_mode = 2;
 pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
 pub const AA_NONE: aa_dithering_mode = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_driver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub init: Option<
-        unsafe extern "C" fn(
-            *const aa_hardware_params,
-            *const std::ffi::c_void,
-            *mut aa_hardware_params,
-            *mut *mut std::ffi::c_void,
-        ) -> std::ffi::c_int,
-    >,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getsize: Option<
-        unsafe extern "C" fn(*mut aa_context, *mut std::ffi::c_int, *mut std::ffi::c_int) -> (),
-    >,
-    pub setattr: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-    pub print: Option<unsafe extern "C" fn(*mut aa_context, *const std::ffi::c_char) -> ()>,
-    pub gotoxy:
-        Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int, std::ffi::c_int) -> ()>,
-    pub flush: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_context {
-    pub driver: *const aa_driver,
-    pub kbddriver: *const aa_kbddriver,
-    pub mousedriver: *const aa_mousedriver,
-    pub params: aa_hardware_params,
-    pub driverparams: aa_hardware_params,
-    pub mulx: std::ffi::c_int,
-    pub muly: std::ffi::c_int,
-    pub imgwidth: std::ffi::c_int,
-    pub imgheight: std::ffi::c_int,
-    pub imagebuffer: *mut std::ffi::c_uchar,
-    pub textbuffer: *mut std::ffi::c_uchar,
-    pub attrbuffer: *mut std::ffi::c_uchar,
-    pub table: *mut std::ffi::c_ushort,
-    pub filltable: *mut std::ffi::c_ushort,
-    pub parameters: *mut parameters,
-    pub cursorx: std::ffi::c_int,
-    pub cursory: std::ffi::c_int,
-    pub cursorstate: std::ffi::c_int,
-    pub mousex: std::ffi::c_int,
-    pub mousey: std::ffi::c_int,
-    pub buttons: std::ffi::c_int,
-    pub mousemode: std::ffi::c_int,
-    pub resizehandler: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub driverdata: *mut std::ffi::c_void,
-    pub kbddriverdata: *mut std::ffi::c_void,
-    pub mousedriverdata: *mut std::ffi::c_void,
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_font {
-    pub data: *const std::ffi::c_uchar,
-    pub height: std::ffi::c_int,
-    pub name: *const std::ffi::c_char,
-    pub shortname: *const std::ffi::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_mousedriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getmouse: Option<
-        unsafe extern "C" fn(
-            *mut aa_context,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-        ) -> (),
-    >,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_kbddriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-}
 
 pub type aa_palette = [std::ffi::c_int; 256];
 static mut context: *mut aa_context = 0 as *const aa_context as *mut aa_context;
-static mut params: *mut aa_renderparams = 0 as *const aa_renderparams as *mut aa_renderparams;
+static mut params: *mut aa_renderparams = 0 as *mut aa_renderparams;
 static mut palette: aa_palette = [0; 256];
 static mut table: [std::ffi::c_uint; 1280] = [0; 1280];
 static mut pal: [std::ffi::c_int; 768] = [

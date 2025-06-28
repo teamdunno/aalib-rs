@@ -1,4 +1,5 @@
-use super::aarec::{aa_linkedlist, aa_recommendhi, aa_recommendlow};
+use super::aarec::{aa_recommendhi, aa_recommendlow};
+use super::aastructs::*;
 
 unsafe extern "C" {
     static mut aa_kbdrecommended: *mut aa_linkedlist;

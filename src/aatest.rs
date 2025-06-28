@@ -2,7 +2,7 @@ use super::aaedit::aa_edit;
 use super::aafastre::aa_fastrender;
 use super::aaflush::aa_flush;
 use super::aaflush::aa_hidemouse;
-use super::aain::{aa_context, aa_getevent, aa_getkey, aa_getmouse, aa_hardware_params};
+use super::aain::{aa_getevent, aa_getkey, aa_getmouse};
 use super::aakbdreg::aa_autoinitkbd;
 use super::aalib::{aa_close, aa_uninitmouse};
 use super::aamoureg::aa_autoinitmouse;
@@ -10,7 +10,8 @@ use super::aaout::{aa_hidecursor, aa_puts};
 use super::aaparse::aa_parseoptions;
 use super::aaprintf::aa_printf;
 use super::aaregist::aa_autoinit;
-use super::aarender::{aa_getrenderparams, aa_render, aa_renderparams};
+use super::aarender::{aa_getrenderparams, aa_render};
+use super::aastructs::*;
 
 unsafe extern "C" {
     fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
@@ -33,66 +34,6 @@ pub const AA_DITHERTYPES: aa_dithering_mode = 3;
 pub const AA_FLOYD_S: aa_dithering_mode = 2;
 pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
 pub const AA_NONE: aa_dithering_mode = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_driver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub init: Option<
-        unsafe extern "C" fn(
-            *const aa_hardware_params,
-            *const std::ffi::c_void,
-            *mut aa_hardware_params,
-            *mut *mut std::ffi::c_void,
-        ) -> std::ffi::c_int,
-    >,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getsize: Option<
-        unsafe extern "C" fn(*mut aa_context, *mut std::ffi::c_int, *mut std::ffi::c_int) -> (),
-    >,
-    pub setattr: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-    pub print: Option<unsafe extern "C" fn(*mut aa_context, *const std::ffi::c_char) -> ()>,
-    pub gotoxy:
-        Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int, std::ffi::c_int) -> ()>,
-    pub flush: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_font {
-    pub data: *const std::ffi::c_uchar,
-    pub height: std::ffi::c_int,
-    pub name: *const std::ffi::c_char,
-    pub shortname: *const std::ffi::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_mousedriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getmouse: Option<
-        unsafe extern "C" fn(
-            *mut aa_context,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-        ) -> (),
-    >,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_kbddriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-}
 unsafe fn main_0(
     mut argc: std::ffi::c_int,
     mut argv: *mut *mut std::ffi::c_char,

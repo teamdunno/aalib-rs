@@ -1,6 +1,4 @@
-use super::aain::{
-    aa_context, aa_driver, aa_font, aa_hardware_params, aa_kbddriver, aa_mousedriver, parameters,
-};
+use super::aastructs::*;
 use super::font16::aa_font16;
 
 unsafe extern "C" {

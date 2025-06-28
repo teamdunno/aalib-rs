@@ -1,4 +1,4 @@
-use super::aain::aa_font;
+use super::aastructs::*;
 
 static mut font16data: [std::ffi::c_uchar; 4096] = [
     0 as std::ffi::c_int as std::ffi::c_uchar,

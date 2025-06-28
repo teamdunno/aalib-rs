@@ -1,7 +1,6 @@
-use super::aafonts::aa_font;
-use super::aain::aa_driver;
-use super::aain::{aa_context, aa_hardware_params};
-use super::aarec::{aa_linkedlist, aa_recommendlow};
+use super::aarec::aa_recommendlow;
+use super::aastructs::*;
+use super::aastructs::*;
 use super::aax::{__aa_X_getsize, __aa_X_redraw, xdriverdata};
 use x11_dl::xlib::{_XDisplay, _XGC};
 
@@ -591,39 +590,6 @@ pub const AA_DITHERTYPES: aa_dithering_mode = 3;
 pub const AA_FLOYD_S: aa_dithering_mode = 2;
 pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
 pub const AA_NONE: aa_dithering_mode = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct parameters {
-    pub p: [std::ffi::c_uint; 5],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_mousedriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getmouse: Option<
-        unsafe extern "C" fn(
-            *mut aa_context,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-        ) -> (),
-    >,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_kbddriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-}
 unsafe extern "C" fn X_init(mut c: *mut aa_context, mut mode: std::ffi::c_int) -> std::ffi::c_int {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if (*c).driver != &X11_d as *const aa_driver {

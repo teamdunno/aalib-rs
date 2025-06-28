@@ -1,7 +1,7 @@
 #![allow(warnings)]
 #![allow(mutable_transmutes, static_mut_refs)]
 
-use aain::aa_driver;
+use aastructs::aa_driver;
 
 #[macro_use]
 extern crate c2rust_bitfields;
@@ -50,6 +50,7 @@ pub mod aaslang;
 pub mod aaslnkbd;
 pub mod aastdin;
 pub mod aastdout;
+pub mod aastructs;
 pub mod aatest;
 pub mod aatext;
 pub mod aavyhen;
@@ -73,11 +74,11 @@ mod tests {
 
     use super::{
         aaflush::aa_flush,
-        aain::aa_hardware_params,
         aaout::{aa_hidecursor, aa_puts},
         aaregist::aa_autoinit,
         aascrheight::aa_scrheight,
         aascrwidth::aa_scrwidth,
+        aastructs::*,
         aax::{AA_BOLD, AA_DIM, AA_NORMAL, AA_SPECIAL},
     };
     use std::{ffi::CString, thread, time::Duration};

@@ -1,5 +1,5 @@
-use super::aain::aa_context;
 use super::aaout::aa_puts;
+use super::aastructs::*;
 
 pub type __builtin_va_list = [__va_list_tag; 1];
 #[derive(Copy, Clone)]
@@ -41,65 +41,6 @@ pub struct aa_driver {
         Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int, std::ffi::c_int) -> ()>,
     pub flush: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
     pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct parameters {
-    pub p: [std::ffi::c_uint; 5],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_hardware_params {
-    pub font: *const aa_font,
-    pub supported: std::ffi::c_int,
-    pub minwidth: std::ffi::c_int,
-    pub minheight: std::ffi::c_int,
-    pub maxwidth: std::ffi::c_int,
-    pub maxheight: std::ffi::c_int,
-    pub recwidth: std::ffi::c_int,
-    pub recheight: std::ffi::c_int,
-    pub mmwidth: std::ffi::c_int,
-    pub mmheight: std::ffi::c_int,
-    pub width: std::ffi::c_int,
-    pub height: std::ffi::c_int,
-    pub dimmul: std::ffi::c_double,
-    pub boldmul: std::ffi::c_double,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_font {
-    pub data: *const std::ffi::c_uchar,
-    pub height: std::ffi::c_int,
-    pub name: *const std::ffi::c_char,
-    pub shortname: *const std::ffi::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_mousedriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getmouse: Option<
-        unsafe extern "C" fn(
-            *mut aa_context,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-        ) -> (),
-    >,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_kbddriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
 }
 
 pub fn aa_printf(

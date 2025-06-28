@@ -1,15 +1,10 @@
+use super::aastructs::*;
+
 unsafe extern "C" {
     fn strcmp(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> std::ffi::c_int;
     fn strdup(_: *const std::ffi::c_char) -> *mut std::ffi::c_char;
     fn malloc(_: std::ffi::c_ulong) -> *mut std::ffi::c_void;
     fn free(_: *mut std::ffi::c_void);
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_linkedlist {
-    pub text: *mut std::ffi::c_char,
-    pub next: *mut aa_linkedlist,
-    pub previous: *mut aa_linkedlist,
 }
 
 pub static mut aa_kbdrecommended: *mut aa_linkedlist =

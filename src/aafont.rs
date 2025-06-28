@@ -1,4 +1,4 @@
-use super::aain::{aa_font, parameters};
+use super::aastructs::*;
 
 unsafe extern "C" {
     fn __ctype_b_loc() -> *mut *const std::ffi::c_ushort;

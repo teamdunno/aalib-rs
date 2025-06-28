@@ -1,4 +1,4 @@
-use super::aain::{aa_context, aa_hardware_params};
+use super::aastructs::*;
 
 #[derive(Copy, Clone)]
 #[repr(C)]

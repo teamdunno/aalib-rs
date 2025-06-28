@@ -1,7 +1,7 @@
-use super::aain::{aa_context, aa_driver, aa_hardware_params};
 use super::aalib::aa_init;
 use super::aarec::aa_displayrecommended;
-use super::aarec::{aa_getfirst, aa_linkedlist};
+use super::aarec::aa_getfirst;
+use super::aastructs::*;
 unsafe extern "C" {
     fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
     fn free(_: *mut std::ffi::c_void);
@@ -11,48 +11,6 @@ unsafe extern "C" {
     static stderr_d: aa_driver;
     static X11_d: aa_driver;
     fn strcmp(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> std::ffi::c_int;
-}
-
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct parameters {
-    pub p: [std::ffi::c_uint; 5],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_font {
-    pub data: *const std::ffi::c_uchar,
-    pub height: std::ffi::c_int,
-    pub name: *const std::ffi::c_char,
-    pub shortname: *const std::ffi::c_char,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_mousedriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getmouse: Option<
-        unsafe extern "C" fn(
-            *mut aa_context,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-        ) -> (),
-    >,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct aa_kbddriver {
-    pub shortname: *const std::ffi::c_char,
-    pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
 }
 pub static mut aa_drivers: [*const aa_driver; 6] = unsafe {
     [

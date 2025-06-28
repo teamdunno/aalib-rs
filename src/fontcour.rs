@@ -1,4 +1,4 @@
-use super::aafonts::aa_font;
+use super::aastructs::*;
 
 static mut fontcourierdata: [std::ffi::c_uchar; 3072] = [
     0 as std::ffi::c_int as std::ffi::c_uchar,
