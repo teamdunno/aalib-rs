@@ -1,10 +1,5 @@
+use super::aaattributes::*;
 use super::aastructs::*;
-
-pub type aa_dithering_mode = std::ffi::c_uint;
-pub const AA_DITHERTYPES: aa_dithering_mode = 3;
-pub const AA_FLOYD_S: aa_dithering_mode = 2;
-pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
-pub const AA_NONE: aa_dithering_mode = 0;
 
 pub fn aa_initkbd(c: *mut aa_context, d: *const aa_kbddriver, mode: i64) -> u32 {
     unsafe {

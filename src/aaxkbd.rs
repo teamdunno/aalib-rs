@@ -1,8 +1,10 @@
+use super::aaattributes::*;
 use super::aarec::aa_mouserecommended;
 use super::aarec::aa_recommendlow;
 use super::aastructs::*;
 use super::aax::{__aa_X_getsize, __aa_X_redraw, xdriverdata};
 use super::aaxmouse::{__X_buttons, __X_mousex, __X_mousey};
+
 use x11_dl::xlib::{_XDisplay, _XGC};
 
 unsafe extern "C" {
@@ -582,112 +584,117 @@ pub struct _XComposeStatus {
     pub chars_matched: std::ffi::c_int,
 }
 pub type XComposeStatus = _XComposeStatus;
-pub type aa_dithering_mode = std::ffi::c_uint;
-pub const AA_DITHERTYPES: aa_dithering_mode = 3;
-pub const AA_FLOYD_S: aa_dithering_mode = 2;
-pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
-pub const AA_NONE: aa_dithering_mode = 0;
-unsafe fn X_init(c: *mut aa_context, mode: i64) -> i64 { unsafe {
-    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
-    if (*c).driver != &X11_d as *const aa_driver {
-        return 0;
-    }
-    (*d).attr.event_mask |= (1 as std::ffi::c_long) << 17 as std::ffi::c_int
-        | (1 as std::ffi::c_long) << 0 as std::ffi::c_int
-        | (if mode & 1 != 0 { 1 << 1 } else { 0 });
-    XSelectInput((*d).dp, (*d).wi, (*d).attr.event_mask);
-    aa_recommendlow(
-        &mut aa_mouserecommended,
-        b"X11\0" as *const u8 as *const std::ffi::c_char,
-    );
-    return 1;
-}}
-unsafe fn X_uninit(c: *mut aa_context) { unsafe {
-    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
-    (*d).attr.event_mask &= !((1 as std::ffi::c_long) << 0 as std::ffi::c_int
-        | (1 as std::ffi::c_long) << 1 as std::ffi::c_int);
-    XSelectInput((*d).dp, (*d).wi, (*d).attr.event_mask);
-}}
-unsafe extern "C" fn decodekey(ev: *mut XEvent) -> std::ffi::c_int { unsafe {
-    let mut ksym: KeySym = 0;
-    let mut name: [std::ffi::c_char; 256] = [0; 256];
-    ksym = XLookupKeysym(&mut (*ev).xkey, 0 as std::ffi::c_int);
-    match ksym {
-        65361 => return 302 as std::ffi::c_int,
-        65363 => return 303 as std::ffi::c_int,
-        65362 => return 300 as std::ffi::c_int,
-        65364 => return 301 as std::ffi::c_int,
-        65307 => return 305 as std::ffi::c_int,
-        32 => return ' ' as i32,
-        65293 => return 13 as std::ffi::c_int,
-        65288 | 65535 => return 304 as std::ffi::c_int,
-        _ => {}
-    }
-    name[XLookupString(
-        &mut (*ev).xkey,
-        name.as_mut_ptr(),
-        256 as std::ffi::c_int,
-        &mut ksym,
-        0 as *mut XComposeStatus,
-    ) as usize] = 0 as std::ffi::c_int as std::ffi::c_char;
-    if strlen(name.as_mut_ptr()) != 1 as std::ffi::c_int as std::ffi::c_ulong {
-        return (400 as std::ffi::c_int as KeySym).wrapping_add(ksym) as std::ffi::c_int;
-    }
-    return name[0 as std::ffi::c_int as usize] as std::ffi::c_int;
-}}
-unsafe fn X_getchar(c: *mut aa_context, wait: i64) -> i64 { unsafe {
-    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
-    loop {
-        let mut ev: XEvent = _XEvent { type_0: 0 };
-        if wait == 0 && XPending((*d).dp) == 0 {
-            return AA_NONE.try_into().unwrap();
+unsafe fn X_init(c: *mut aa_context, mode: i64) -> i64 {
+    unsafe {
+        let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+        if (*c).driver != &X11_d as *const aa_driver {
+            return 0;
         }
-        XNextEvent((*d).dp, &mut ev);
-        let current_block_15: u64;
-        match ev.type_0 {
-            4 => {
-                ev.xbutton.state |= ((1 as std::ffi::c_int)
-                    << (ev.xbutton.button).wrapping_add(7 as std::ffi::c_int as std::ffi::c_uint))
-                    as std::ffi::c_uint;
-                current_block_15 = 4023461411533754095;
+        (*d).attr.event_mask |= (1 as std::ffi::c_long) << 17 as std::ffi::c_int
+            | (1 as std::ffi::c_long) << 0 as std::ffi::c_int
+            | (if mode & 1 != 0 { 1 << 1 } else { 0 });
+        XSelectInput((*d).dp, (*d).wi, (*d).attr.event_mask);
+        aa_recommendlow(
+            &mut aa_mouserecommended,
+            b"X11\0" as *const u8 as *const std::ffi::c_char,
+        );
+        return 1;
+    }
+}
+unsafe fn X_uninit(c: *mut aa_context) {
+    unsafe {
+        let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+        (*d).attr.event_mask &= !((1 as std::ffi::c_long) << 0 as std::ffi::c_int
+            | (1 as std::ffi::c_long) << 1 as std::ffi::c_int);
+        XSelectInput((*d).dp, (*d).wi, (*d).attr.event_mask);
+    }
+}
+unsafe extern "C" fn decodekey(ev: *mut XEvent) -> std::ffi::c_int {
+    unsafe {
+        let mut ksym: KeySym = 0;
+        let mut name: [std::ffi::c_char; 256] = [0; 256];
+        ksym = XLookupKeysym(&mut (*ev).xkey, 0 as std::ffi::c_int);
+        match ksym {
+            65361 => return 302 as std::ffi::c_int,
+            65363 => return 303 as std::ffi::c_int,
+            65362 => return 300 as std::ffi::c_int,
+            65364 => return 301 as std::ffi::c_int,
+            65307 => return 305 as std::ffi::c_int,
+            32 => return ' ' as i32,
+            65293 => return 13 as std::ffi::c_int,
+            65288 | 65535 => return 304 as std::ffi::c_int,
+            _ => {}
+        }
+        name[XLookupString(
+            &mut (*ev).xkey,
+            name.as_mut_ptr(),
+            256 as std::ffi::c_int,
+            &mut ksym,
+            0 as *mut XComposeStatus,
+        ) as usize] = 0 as std::ffi::c_int as std::ffi::c_char;
+        if strlen(name.as_mut_ptr()) != 1 as std::ffi::c_int as std::ffi::c_ulong {
+            return (400 as std::ffi::c_int as KeySym).wrapping_add(ksym) as std::ffi::c_int;
+        }
+        return name[0 as std::ffi::c_int as usize] as std::ffi::c_int;
+    }
+}
+unsafe fn X_getchar(c: *mut aa_context, wait: i64) -> i64 {
+    unsafe {
+        let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+        loop {
+            let mut ev: XEvent = _XEvent { type_0: 0 };
+            if wait == 0 && XPending((*d).dp) == 0 {
+                return AA_NONE.try_into().unwrap();
             }
-            5 => {
-                ev.xbutton.state &= !((1 as std::ffi::c_int)
-                    << (ev.xbutton.button).wrapping_add(7 as std::ffi::c_int as std::ffi::c_uint))
-                    as std::ffi::c_uint;
-                current_block_15 = 4023461411533754095;
-            }
-            6 => {
-                current_block_15 = 4023461411533754095;
-            }
-            12 => {
-                XSync((*d).dp, 0 as std::ffi::c_int);
-                __aa_X_redraw(c);
-                current_block_15 = 8831408221741692167;
-            }
-            22 => {
-                if __aa_X_getsize(c, d) != 0 {
-                    return 258;
+            XNextEvent((*d).dp, &mut ev);
+            let current_block_15: u64;
+            match ev.type_0 {
+                4 => {
+                    ev.xbutton.state |= ((1 as std::ffi::c_int)
+                        << (ev.xbutton.button)
+                            .wrapping_add(7 as std::ffi::c_int as std::ffi::c_uint))
+                        as std::ffi::c_uint;
+                    current_block_15 = 4023461411533754095;
                 }
-                current_block_15 = 8831408221741692167;
+                5 => {
+                    ev.xbutton.state &= !((1 as std::ffi::c_int)
+                        << (ev.xbutton.button)
+                            .wrapping_add(7 as std::ffi::c_int as std::ffi::c_uint))
+                        as std::ffi::c_uint;
+                    current_block_15 = 4023461411533754095;
+                }
+                6 => {
+                    current_block_15 = 4023461411533754095;
+                }
+                12 => {
+                    XSync((*d).dp, 0 as std::ffi::c_int);
+                    __aa_X_redraw(c);
+                    current_block_15 = 8831408221741692167;
+                }
+                22 => {
+                    if __aa_X_getsize(c, d) != 0 {
+                        return 258;
+                    }
+                    current_block_15 = 8831408221741692167;
+                }
+                2 => return decodekey(&mut ev).into(),
+                3 => return decodekey(&mut ev) as i64 | 65536,
+                _ => {
+                    current_block_15 = 8831408221741692167;
+                }
             }
-            2 => return decodekey(&mut ev).into(),
-            3 => return decodekey(&mut ev) as i64 | 65536,
-            _ => {
-                current_block_15 = 8831408221741692167;
-            }
-        }
-        match current_block_15 {
-            8831408221741692167 => {}
-            _ => {
-                __X_mousex = ev.xbutton.x;
-                __X_mousey = ev.xbutton.y;
-                __X_buttons = ev.xbutton.state as std::ffi::c_int;
-                return 259;
+            match current_block_15 {
+                8831408221741692167 => {}
+                _ => {
+                    __X_mousex = ev.xbutton.x;
+                    __X_mousey = ev.xbutton.y;
+                    __X_buttons = ev.xbutton.state as std::ffi::c_int;
+                    return 259;
+                }
             }
         }
     }
-}}
+}
 
 #[unsafe(no_mangle)]
 pub static mut kbd_X11_d: aa_kbddriver = unsafe {

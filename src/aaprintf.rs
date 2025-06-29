@@ -1,3 +1,4 @@
+use super::aaattributes::*;
 use super::aaout::aa_puts;
 use super::aastructs::*;
 
@@ -11,13 +12,6 @@ pub struct __va_list_tag {
     pub reg_save_area: *mut std::ffi::c_void,
 }
 pub type va_list = __builtin_va_list;
-pub type aa_attribute = std::ffi::c_uint;
-pub const AA_SPECIAL: aa_attribute = 5;
-pub const AA_REVERSE: aa_attribute = 4;
-pub const AA_BOLDFONT: aa_attribute = 3;
-pub const AA_BOLD: aa_attribute = 2;
-pub const AA_DIM: aa_attribute = 1;
-pub const AA_NORMAL: aa_attribute = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct aa_driver {

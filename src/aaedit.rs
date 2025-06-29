@@ -1,9 +1,10 @@
-use super::aastructs::*;
-
+use super::aaattributes::*;
 use super::aaflush::aa_flush;
 use super::aain::aa_getkey;
 use super::aaout::aa_puts;
 use super::aaout::{aa_gotoxy, aa_hidecursor, aa_showcursor};
+use super::aastructs::*;
+
 unsafe extern "C" {
     fn strncpy(
         _: *mut std::ffi::c_char,
@@ -28,13 +29,6 @@ pub const _ISdigit: C2RustUnnamed = 2048;
 pub const _ISalpha: C2RustUnnamed = 1024;
 pub const _ISlower: C2RustUnnamed = 512;
 pub const _ISupper: C2RustUnnamed = 256;
-pub type aa_attribute = std::ffi::c_uint;
-pub const AA_SPECIAL: aa_attribute = 5;
-pub const AA_REVERSE: aa_attribute = 4;
-pub const AA_BOLDFONT: aa_attribute = 3;
-pub const AA_BOLD: aa_attribute = 2;
-pub const AA_DIM: aa_attribute = 1;
-pub const AA_NORMAL: aa_attribute = 0;
 fn aa_editdisplay(e: *mut aa_edit) {
     unsafe {
         let mut s: [std::ffi::c_char; 1000] = [0; 1000];

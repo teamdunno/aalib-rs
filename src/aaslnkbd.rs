@@ -1,3 +1,4 @@
+use super::aaattributes::*;
 use super::aarec::aa_mouserecommended;
 use super::aarec::aa_recommendlow;
 use super::aaslang::{__resized_slang, __slang_is_up};
@@ -144,11 +145,6 @@ pub struct Gpm_Event {
 }
 pub type Gpm_Handler =
     unsafe extern "C" fn(*mut Gpm_Event, *mut std::ffi::c_void) -> std::ffi::c_int;
-pub type aa_dithering_mode = std::ffi::c_uint;
-pub const AA_DITHERTYPES: aa_dithering_mode = 3;
-pub const AA_FLOYD_S: aa_dithering_mode = 2;
-pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
-pub const AA_NONE: aa_dithering_mode = 0;
 static mut iswaiting: std::ffi::c_int = 0;
 static mut f: *mut FILE = 0 as *const FILE as *mut FILE;
 static mut buf: jmp_buf = [__jmp_buf_tag {
@@ -159,111 +155,194 @@ static mut buf: jmp_buf = [__jmp_buf_tag {
 
 pub static mut __slang_keyboard: std::ffi::c_int = 0;
 static mut uninitslang: std::ffi::c_int = 0;
-unsafe extern "C" fn handler(i: std::ffi::c_int) { unsafe {
-    ::core::ptr::write_volatile(
-        &mut __resized_slang as *mut std::ffi::c_int,
-        2 as std::ffi::c_int,
-    );
-    signal(
-        28 as std::ffi::c_int,
-        Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
-    );
-    if iswaiting != 0 {
-        longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
-    }
-}}
-unsafe fn slang_init(context: *mut aa_context, mode: i64) -> i64 { unsafe {
-    if __slang_is_up == 0 {
-        fflush(stdout);
-        SLtt_get_terminfo();
-        __slang_is_up = 1 as std::ffi::c_int;
-        uninitslang = 1 as std::ffi::c_int;
-    }
-    f = fopen(
-        b"/dev/null\0" as *const u8 as *const std::ffi::c_char,
-        b"r\0" as *const u8 as *const std::ffi::c_char,
-    );
-    if SLang_init_tty(-1, 0, 0) == -1 {
-        return 0;
-    }
-    if SLkp_init() == -1 {
-        return 0;
-    }
-    __slang_keyboard = 1;
-    aa_recommendlow(
-        &mut aa_mouserecommended,
-        b"gpm\0" as *const u8 as *const std::ffi::c_char,
-    );
-    signal(
-        28 as std::ffi::c_int,
-        Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
-    );
-    return 1;
-}}
-unsafe fn slang_uninit(c: *mut aa_context) { unsafe {
-    if uninitslang != 0 {
-        uninitslang = 0 as std::ffi::c_int;
-        __slang_is_up = 0 as std::ffi::c_int;
-    }
-    SLang_reset_tty();
-}}
-unsafe fn slang_getchar(c1: *mut aa_context, wait: i64) -> i64 { unsafe {
-    let mut c: std::ffi::c_int = 0;
-    let mut flag: std::ffi::c_int = 0 as std::ffi::c_int;
-    static mut ev: Gpm_Event = Gpm_Event {
-        buttons: 0,
-        modifiers: 0,
-        vc: 0,
-        dx: 0,
-        dy: 0,
-        x: 0,
-        y: 0,
-        type_0: 0 as Gpm_Etype,
-        clicks: 0,
-        margin: 0 as Gpm_Margin,
-        wdx: 0,
-        wdy: 0,
-    };
-    let mut tv: timeval = timeval {
-        tv_sec: 0,
-        tv_usec: 0,
-    };
-    let mut readfds: fd_set = fd_set {
-        __fds_bits: [0; 16],
-    };
-    if wait != 0 {
-        _setjmp(buf.as_mut_ptr());
-        iswaiting = 1 as std::ffi::c_int;
-    } else {
-        iswaiting = 0 as std::ffi::c_int;
-    }
-    if __resized_slang == 2 as std::ffi::c_int {
-        iswaiting = 0 as std::ffi::c_int;
+unsafe extern "C" fn handler(i: std::ffi::c_int) {
+    unsafe {
         ::core::ptr::write_volatile(
             &mut __resized_slang as *mut std::ffi::c_int,
-            1 as std::ffi::c_int,
+            2 as std::ffi::c_int,
         );
-        return 258;
+        signal(
+            28 as std::ffi::c_int,
+            Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
+        );
+        if iswaiting != 0 {
+            longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
+        }
     }
-    if wait == 0 {
-        if gpm_fd == -(1 as std::ffi::c_int) {
-            if SLang_input_pending(0 as std::ffi::c_int) == 0 {
-                return AA_NONE.try_into().unwrap();
-            }
+}
+unsafe fn slang_init(context: *mut aa_context, mode: i64) -> i64 {
+    unsafe {
+        if __slang_is_up == 0 {
+            fflush(stdout);
+            SLtt_get_terminfo();
+            __slang_is_up = 1 as std::ffi::c_int;
+            uninitslang = 1 as std::ffi::c_int;
+        }
+        f = fopen(
+            b"/dev/null\0" as *const u8 as *const std::ffi::c_char,
+            b"r\0" as *const u8 as *const std::ffi::c_char,
+        );
+        if SLang_init_tty(-1, 0, 0) == -1 {
+            return 0;
+        }
+        if SLkp_init() == -1 {
+            return 0;
+        }
+        __slang_keyboard = 1;
+        aa_recommendlow(
+            &mut aa_mouserecommended,
+            b"gpm\0" as *const u8 as *const std::ffi::c_char,
+        );
+        signal(
+            28 as std::ffi::c_int,
+            Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
+        );
+        return 1;
+    }
+}
+unsafe fn slang_uninit(c: *mut aa_context) {
+    unsafe {
+        if uninitslang != 0 {
+            uninitslang = 0 as std::ffi::c_int;
+            __slang_is_up = 0 as std::ffi::c_int;
+        }
+        SLang_reset_tty();
+    }
+}
+unsafe fn slang_getchar(c1: *mut aa_context, wait: i64) -> i64 {
+    unsafe {
+        let mut c: std::ffi::c_int = 0;
+        let mut flag: std::ffi::c_int = 0 as std::ffi::c_int;
+        static mut ev: Gpm_Event = Gpm_Event {
+            buttons: 0,
+            modifiers: 0,
+            vc: 0,
+            dx: 0,
+            dy: 0,
+            x: 0,
+            y: 0,
+            type_0: 0 as Gpm_Etype,
+            clicks: 0,
+            margin: 0 as Gpm_Margin,
+            wdx: 0,
+            wdy: 0,
+        };
+        let mut tv: timeval = timeval {
+            tv_sec: 0,
+            tv_usec: 0,
+        };
+        let mut readfds: fd_set = fd_set {
+            __fds_bits: [0; 16],
+        };
+        if wait != 0 {
+            _setjmp(buf.as_mut_ptr());
+            iswaiting = 1 as std::ffi::c_int;
         } else {
+            iswaiting = 0 as std::ffi::c_int;
+        }
+        if __resized_slang == 2 as std::ffi::c_int {
+            iswaiting = 0 as std::ffi::c_int;
+            ::core::ptr::write_volatile(
+                &mut __resized_slang as *mut std::ffi::c_int,
+                1 as std::ffi::c_int,
+            );
+            return 258;
+        }
+        if wait == 0 {
+            if gpm_fd == -(1 as std::ffi::c_int) {
+                if SLang_input_pending(0 as std::ffi::c_int) == 0 {
+                    return AA_NONE.try_into().unwrap();
+                }
+            } else {
+                *_gpm_buf.as_mut_ptr().offset(
+                    (::core::mem::size_of::<std::ffi::c_short>() as std::ffi::c_ulong)
+                        .wrapping_sub(1 as std::ffi::c_int as std::ffi::c_ulong)
+                        as isize,
+                ) = 2 as std::ffi::c_int as std::ffi::c_uchar;
+                let ref mut fresh0 = *_gpm_arg.offset(2 as std::ffi::c_int as isize);
+                *fresh0 = (ev.x as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased)
+                    as std::ffi::c_ushort;
+                *_gpm_arg.offset(0 as std::ffi::c_int as isize) = *fresh0;
+                let ref mut fresh1 = *_gpm_arg.offset(3 as std::ffi::c_int as isize);
+                *fresh1 = (ev.y as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased)
+                    as std::ffi::c_ushort;
+                *_gpm_arg.offset(1 as std::ffi::c_int as isize) = *fresh1;
+                *_gpm_arg.offset(4 as std::ffi::c_int as isize) =
+                    3 as std::ffi::c_int as std::ffi::c_ushort;
+                ioctl(
+                    gpm_consolefd,
+                    0x541c as std::ffi::c_int as std::ffi::c_ulong,
+                    _gpm_buf
+                        .as_mut_ptr()
+                        .offset(
+                            ::core::mem::size_of::<std::ffi::c_short>() as std::ffi::c_ulong
+                                as isize,
+                        )
+                        .offset(-(1 as std::ffi::c_int as isize)),
+                );
+                tv.tv_sec = 0 as std::ffi::c_int as __time_t;
+                tv.tv_usec = 0 as std::ffi::c_int as __suseconds_t;
+                let mut __i: std::ffi::c_uint = 0;
+                let mut __arr: *mut fd_set = &mut readfds;
+                __i = 0 as std::ffi::c_int as std::ffi::c_uint;
+                while (__i as std::ffi::c_ulong)
+                    < (::core::mem::size_of::<fd_set>() as std::ffi::c_ulong)
+                        .wrapping_div(::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong)
+                {
+                    (*__arr).__fds_bits[__i as usize] = 0 as std::ffi::c_int as __fd_mask;
+                    __i = __i.wrapping_add(1);
+                    __i;
+                }
+                if gpm_fd != -(2 as std::ffi::c_int) {
+                    readfds.__fds_bits[(gpm_fd
+                        / (8 as std::ffi::c_int
+                            * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
+                                as std::ffi::c_int))
+                        as usize] |= ((1 as std::ffi::c_ulong)
+                        << gpm_fd
+                            % (8 as std::ffi::c_int
+                                * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
+                                    as std::ffi::c_int))
+                        as __fd_mask;
+                }
+                let fd: usize = 0;
+                readfds.__fds_bits[fd / (8 * std::mem::size_of::<__fd_mask>())] |=
+                    (1 as __fd_mask) << (fd % (8 * std::mem::size_of::<__fd_mask>()));
+                ::core::ptr::write_volatile(
+                    &mut flag as *mut std::ffi::c_int,
+                    select(
+                        (if gpm_fd == -(2 as std::ffi::c_int) {
+                            0 as std::ffi::c_int
+                        } else {
+                            gpm_fd
+                        }) + 1 as std::ffi::c_int,
+                        &mut readfds,
+                        0 as *mut fd_set,
+                        0 as *mut fd_set,
+                        &mut tv,
+                    ),
+                );
+                if ::core::ptr::read_volatile::<std::ffi::c_int>(&flag as *const std::ffi::c_int)
+                    == 0
+                {
+                    return AA_NONE.try_into().unwrap();
+                }
+            }
+        }
+        if gpm_fd != -(1 as std::ffi::c_int) {
             *_gpm_buf.as_mut_ptr().offset(
                 (::core::mem::size_of::<std::ffi::c_short>() as std::ffi::c_ulong)
                     .wrapping_sub(1 as std::ffi::c_int as std::ffi::c_ulong)
                     as isize,
             ) = 2 as std::ffi::c_int as std::ffi::c_uchar;
-            let ref mut fresh0 = *_gpm_arg.offset(2 as std::ffi::c_int as isize);
-            *fresh0 = (ev.x as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased)
+            let ref mut fresh2 = *_gpm_arg.offset(2 as std::ffi::c_int as isize);
+            *fresh2 = (ev.x as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased)
                 as std::ffi::c_ushort;
-            *_gpm_arg.offset(0 as std::ffi::c_int as isize) = *fresh0;
-            let ref mut fresh1 = *_gpm_arg.offset(3 as std::ffi::c_int as isize);
-            *fresh1 = (ev.y as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased)
+            *_gpm_arg.offset(0 as std::ffi::c_int as isize) = *fresh2;
+            let ref mut fresh3 = *_gpm_arg.offset(3 as std::ffi::c_int as isize);
+            *fresh3 = (ev.y as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased)
                 as std::ffi::c_ushort;
-            *_gpm_arg.offset(1 as std::ffi::c_int as isize) = *fresh1;
+            *_gpm_arg.offset(1 as std::ffi::c_int as isize) = *fresh3;
             *_gpm_arg.offset(4 as std::ffi::c_int as isize) =
                 3 as std::ffi::c_int as std::ffi::c_ushort;
             ioctl(
@@ -276,174 +355,108 @@ unsafe fn slang_getchar(c1: *mut aa_context, wait: i64) -> i64 { unsafe {
                     )
                     .offset(-(1 as std::ffi::c_int as isize)),
             );
-            tv.tv_sec = 0 as std::ffi::c_int as __time_t;
-            tv.tv_usec = 0 as std::ffi::c_int as __suseconds_t;
-            let mut __i: std::ffi::c_uint = 0;
-            let mut __arr: *mut fd_set = &mut readfds;
-            __i = 0 as std::ffi::c_int as std::ffi::c_uint;
-            while (__i as std::ffi::c_ulong)
-                < (::core::mem::size_of::<fd_set>() as std::ffi::c_ulong)
-                    .wrapping_div(::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong)
-            {
-                (*__arr).__fds_bits[__i as usize] = 0 as std::ffi::c_int as __fd_mask;
-                __i = __i.wrapping_add(1);
-                __i;
-            }
-            if gpm_fd != -(2 as std::ffi::c_int) {
-                readfds.__fds_bits[(gpm_fd
-                    / (8 as std::ffi::c_int
-                        * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
-                            as std::ffi::c_int)) as usize] |= ((1 as std::ffi::c_ulong)
-                    << gpm_fd
-                        % (8 as std::ffi::c_int
+            while flag == 0 {
+                let mut __i_0: std::ffi::c_uint = 0;
+                let mut __arr_0: *mut fd_set = &mut readfds;
+                __i_0 = 0 as std::ffi::c_int as std::ffi::c_uint;
+                while (__i_0 as std::ffi::c_ulong)
+                    < (::core::mem::size_of::<fd_set>() as std::ffi::c_ulong)
+                        .wrapping_div(::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong)
+                {
+                    (*__arr_0).__fds_bits[__i_0 as usize] = 0 as std::ffi::c_int as __fd_mask;
+                    __i_0 = __i_0.wrapping_add(1);
+                    __i_0;
+                }
+                if gpm_fd != -(2 as std::ffi::c_int) {
+                    readfds.__fds_bits[(gpm_fd
+                        / (8 as std::ffi::c_int
                             * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
                                 as std::ffi::c_int))
-                    as __fd_mask;
+                        as usize] |= ((1 as std::ffi::c_ulong)
+                        << gpm_fd
+                            % (8 as std::ffi::c_int
+                                * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
+                                    as std::ffi::c_int))
+                        as __fd_mask;
+                }
+                let fd: usize = 0;
+                readfds.__fds_bits[fd / (8 * std::mem::size_of::<__fd_mask>())] |=
+                    (1 as __fd_mask) << (fd % (8 * std::mem::size_of::<__fd_mask>()));
+                tv.tv_sec = 60 as std::ffi::c_int as __time_t;
+                ::core::ptr::write_volatile(
+                    &mut flag as *mut std::ffi::c_int,
+                    select(
+                        (if gpm_fd == -(2 as std::ffi::c_int) {
+                            0 as std::ffi::c_int
+                        } else {
+                            gpm_fd
+                        }) + 1 as std::ffi::c_int,
+                        &mut readfds,
+                        0 as *mut fd_set,
+                        0 as *mut fd_set,
+                        &mut tv,
+                    ),
+                );
             }
-            let fd: usize = 0;
-            readfds.__fds_bits[fd / (8 * std::mem::size_of::<__fd_mask>())] |=
-                (1 as __fd_mask) << (fd % (8 * std::mem::size_of::<__fd_mask>()));
-            ::core::ptr::write_volatile(
-                &mut flag as *mut std::ffi::c_int,
-                select(
-                    (if gpm_fd == -(2 as std::ffi::c_int) {
-                        0 as std::ffi::c_int
-                    } else {
-                        gpm_fd
-                    }) + 1 as std::ffi::c_int,
-                    &mut readfds,
-                    0 as *mut fd_set,
-                    0 as *mut fd_set,
-                    &mut tv,
-                ),
-            );
-            if ::core::ptr::read_volatile::<std::ffi::c_int>(&flag as *const std::ffi::c_int) == 0 {
+            if flag == -(1 as std::ffi::c_int) {
+                printf(b"error!\n\0" as *const u8 as *const std::ffi::c_char);
                 return AA_NONE.try_into().unwrap();
             }
-        }
-    }
-    if gpm_fd != -(1 as std::ffi::c_int) {
-        *_gpm_buf.as_mut_ptr().offset(
-            (::core::mem::size_of::<std::ffi::c_short>() as std::ffi::c_ulong)
-                .wrapping_sub(1 as std::ffi::c_int as std::ffi::c_ulong) as isize,
-        ) = 2 as std::ffi::c_int as std::ffi::c_uchar;
-        let ref mut fresh2 = *_gpm_arg.offset(2 as std::ffi::c_int as isize);
-        *fresh2 =
-            (ev.x as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased) as std::ffi::c_ushort;
-        *_gpm_arg.offset(0 as std::ffi::c_int as isize) = *fresh2;
-        let ref mut fresh3 = *_gpm_arg.offset(3 as std::ffi::c_int as isize);
-        *fresh3 =
-            (ev.y as std::ffi::c_ushort as std::ffi::c_int + gpm_zerobased) as std::ffi::c_ushort;
-        *_gpm_arg.offset(1 as std::ffi::c_int as isize) = *fresh3;
-        *_gpm_arg.offset(4 as std::ffi::c_int as isize) =
-            3 as std::ffi::c_int as std::ffi::c_ushort;
-        ioctl(
-            gpm_consolefd,
-            0x541c as std::ffi::c_int as std::ffi::c_ulong,
-            _gpm_buf
-                .as_mut_ptr()
-                .offset(::core::mem::size_of::<std::ffi::c_short>() as std::ffi::c_ulong as isize)
-                .offset(-(1 as std::ffi::c_int as isize)),
-        );
-        while flag == 0 {
-            let mut __i_0: std::ffi::c_uint = 0;
-            let mut __arr_0: *mut fd_set = &mut readfds;
-            __i_0 = 0 as std::ffi::c_int as std::ffi::c_uint;
-            while (__i_0 as std::ffi::c_ulong)
-                < (::core::mem::size_of::<fd_set>() as std::ffi::c_ulong)
-                    .wrapping_div(::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong)
-            {
-                (*__arr_0).__fds_bits[__i_0 as usize] = 0 as std::ffi::c_int as __fd_mask;
-                __i_0 = __i_0.wrapping_add(1);
-                __i_0;
-            }
-            if gpm_fd != -(2 as std::ffi::c_int) {
-                readfds.__fds_bits[(gpm_fd
+            if gpm_fd > -(1 as std::ffi::c_int)
+                && readfds.__fds_bits[(gpm_fd
                     / (8 as std::ffi::c_int
                         * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
-                            as std::ffi::c_int)) as usize] |= ((1 as std::ffi::c_ulong)
-                    << gpm_fd
-                        % (8 as std::ffi::c_int
-                            * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
-                                as std::ffi::c_int))
-                    as __fd_mask;
-            }
-            let fd: usize = 0;
-            readfds.__fds_bits[fd / (8 * std::mem::size_of::<__fd_mask>())] |=
-                (1 as __fd_mask) << (fd % (8 * std::mem::size_of::<__fd_mask>()));
-            tv.tv_sec = 60 as std::ffi::c_int as __time_t;
-            ::core::ptr::write_volatile(
-                &mut flag as *mut std::ffi::c_int,
-                select(
-                    (if gpm_fd == -(2 as std::ffi::c_int) {
-                        0 as std::ffi::c_int
-                    } else {
-                        gpm_fd
-                    }) + 1 as std::ffi::c_int,
-                    &mut readfds,
-                    0 as *mut fd_set,
-                    0 as *mut fd_set,
-                    &mut tv,
-                ),
-            );
-        }
-        if flag == -(1 as std::ffi::c_int) {
-            printf(b"error!\n\0" as *const u8 as *const std::ffi::c_char);
-            return AA_NONE.try_into().unwrap();
-        }
-        if gpm_fd > -(1 as std::ffi::c_int)
-            && readfds.__fds_bits[(gpm_fd
-                / (8 as std::ffi::c_int
-                    * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong as std::ffi::c_int))
-                as usize]
-                & ((1 as std::ffi::c_ulong)
-                    << gpm_fd
-                        % (8 as std::ffi::c_int
-                            * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
-                                as std::ffi::c_int)) as __fd_mask
-                != 0 as std::ffi::c_int as __fd_mask
-        {
-            if Gpm_GetEvent(&mut ev) != 0
-                && gpm_handler.is_some()
-                && (Some(gpm_handler.expect("non-null function pointer")))
-                    .expect("non-null function pointer")(&mut ev, gpm_data)
-                    != 0
+                            as std::ffi::c_int)) as usize]
+                    & ((1 as std::ffi::c_ulong)
+                        << gpm_fd
+                            % (8 as std::ffi::c_int
+                                * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
+                                    as std::ffi::c_int)) as __fd_mask
+                    != 0 as std::ffi::c_int as __fd_mask
             {
-                gpm_hflag = 1 as std::ffi::c_int;
-                return 259;
+                if Gpm_GetEvent(&mut ev) != 0
+                    && gpm_handler.is_some()
+                    && (Some(gpm_handler.expect("non-null function pointer")))
+                        .expect("non-null function pointer")(
+                        &mut ev, gpm_data
+                    ) != 0
+                {
+                    gpm_hflag = 1 as std::ffi::c_int;
+                    return 259;
+                }
             }
         }
+        if gpm_fd == -(2 as std::ffi::c_int) {
+            c = Gpm_Getc(stdin);
+        } else {
+            c = SLkp_getkey();
+        }
+        iswaiting = 0 as std::ffi::c_int;
+        if __resized_slang == 2 as std::ffi::c_int {
+            ::core::ptr::write_volatile(
+                &mut __resized_slang as *mut std::ffi::c_int,
+                1 as std::ffi::c_int,
+            );
+            return 258;
+        }
+        if c == 27 as std::ffi::c_int {
+            return 305;
+        }
+        if c > 0 as std::ffi::c_int && c < 128 as std::ffi::c_int && c != 127 as std::ffi::c_int {
+            return c.try_into().unwrap();
+        }
+        match c {
+            65535 => return AA_NONE.try_into().unwrap(),
+            259 => return 302,
+            260 => return 303,
+            257 => return 300,
+            258 => return 301,
+            272 | 127 => return 304,
+            _ => {}
+        }
+        return 400;
     }
-    if gpm_fd == -(2 as std::ffi::c_int) {
-        c = Gpm_Getc(stdin);
-    } else {
-        c = SLkp_getkey();
-    }
-    iswaiting = 0 as std::ffi::c_int;
-    if __resized_slang == 2 as std::ffi::c_int {
-        ::core::ptr::write_volatile(
-            &mut __resized_slang as *mut std::ffi::c_int,
-            1 as std::ffi::c_int,
-        );
-        return 258;
-    }
-    if c == 27 as std::ffi::c_int {
-        return 305;
-    }
-    if c > 0 as std::ffi::c_int && c < 128 as std::ffi::c_int && c != 127 as std::ffi::c_int {
-        return c.try_into().unwrap();
-    }
-    match c {
-        65535 => return AA_NONE.try_into().unwrap(),
-        259 => return 302,
-        260 => return 303,
-        257 => return 300,
-        258 => return 301,
-        272 | 127 => return 304,
-        _ => {}
-    }
-    return 400;
-}}
+}
 
 #[unsafe(no_mangle)]
 pub static mut kbd_slang_d: aa_kbddriver = unsafe {

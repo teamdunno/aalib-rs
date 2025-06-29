@@ -1,8 +1,12 @@
+use std::env;
+
+use super::aaattributes::*;
 use super::aafonts::aa_fonts;
 use super::aalib::aa_defparams;
 use super::aarec::{aa_displayrecommended, aa_kbdrecommended, aa_mouserecommended, aa_recommendhi};
 use super::aarender::aa_defrenderparams;
 use super::aastructs::*;
+
 use ::c2rust_bitfields;
 unsafe extern "C" {
     fn strncpy(
@@ -61,59 +65,80 @@ pub struct _IO_FILE {
 }
 pub type _IO_lock_t = ();
 pub type FILE = _IO_FILE;
-pub type aa_dithering_mode = std::ffi::c_uint;
-pub const AA_DITHERTYPES: aa_dithering_mode = 3;
-pub const AA_FLOYD_S: aa_dithering_mode = 2;
-pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
-pub const AA_NONE: aa_dithering_mode = 0;
 #[inline]
-unsafe extern "C" fn atol(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_long { unsafe {
-    return strtol(
-        __nptr,
-        0 as *mut std::ffi::c_void as *mut *mut std::ffi::c_char,
-        10 as std::ffi::c_int,
-    );
-}}
+unsafe extern "C" fn atol(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_long {
+    unsafe {
+        return strtol(
+            __nptr,
+            0 as *mut std::ffi::c_void as *mut *mut std::ffi::c_char,
+            10 as std::ffi::c_int,
+        );
+    }
+}
 #[inline]
-unsafe extern "C" fn atof(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_double { unsafe {
-    return strtod(
-        __nptr,
-        0 as *mut std::ffi::c_void as *mut *mut std::ffi::c_char,
-    );
-}}
+unsafe extern "C" fn atof(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_double {
+    unsafe {
+        return strtod(
+            __nptr,
+            0 as *mut std::ffi::c_void as *mut *mut std::ffi::c_char,
+        );
+    }
+}
 static mut inparse: std::ffi::c_int = 0;
 unsafe extern "C" fn aa_remove(
     i: std::ffi::c_int,
     argc: *mut std::ffi::c_int,
     argv: *mut *mut std::ffi::c_char,
-) { unsafe {
-    let mut y: std::ffi::c_int = 0;
-    if i < 0 as std::ffi::c_int || i >= *argc {
-        printf(b"AA Internal error #1-please report\n\0" as *const u8 as *const std::ffi::c_char);
-        return;
+) {
+    unsafe {
+        let mut y: std::ffi::c_int = 0;
+        if i < 0 as std::ffi::c_int || i >= *argc {
+            printf(
+                b"AA Internal error #1-please report\n\0" as *const u8 as *const std::ffi::c_char,
+            );
+            return;
+        }
+        y = i;
+        while y < *argc - 1 as std::ffi::c_int {
+            let ref mut fresh0 = *argv.offset(y as isize);
+            *fresh0 = *argv.offset((y + 1 as std::ffi::c_int) as isize);
+            y += 1;
+            y;
+        }
+        let ref mut fresh1 = *argv.offset((*argc - 1 as std::ffi::c_int) as isize);
+        *fresh1 = 0 as *mut std::ffi::c_char;
+        *argc -= 1;
+        *argc;
     }
-    y = i;
-    while y < *argc - 1 as std::ffi::c_int {
-        let ref mut fresh0 = *argv.offset(y as isize);
-        *fresh0 = *argv.offset((y + 1 as std::ffi::c_int) as isize);
-        y += 1;
-        y;
-    }
-    let ref mut fresh1 = *argv.offset((*argc - 1 as std::ffi::c_int) as isize);
-    *fresh1 = 0 as *mut std::ffi::c_char;
-    *argc -= 1;
-    *argc;
-}}
+}
 
-/// This is a (mostly unmodified) function, because it takes raw C-style argc and argv. Use it like
-/// this:
-/// ```
-/// TODO: document this here
-/// ```
 pub fn aa_parseoptions(
     mut p: *mut aa_hardware_params,
     mut r: *mut aa_renderparams,
-    argc: *mut std::ffi::c_int,
+    arguments: env::Args,
+) {
+    let mut args: Vec<*mut std::ffi::c_char> = Vec::new();
+    for arg in arguments {
+        args.push(
+            (std::ffi::CString::new(arg)
+                .expect("Failed to convert argument into CString.")
+                .into_raw()),
+        );
+    }
+    args.push(::core::ptr::null_mut());
+
+    aa_parseoptions_c(
+        p,
+        r,
+        &mut ((args.len() - 1) as std::ffi::c_int),
+        args.as_mut_ptr() as *mut *mut std::ffi::c_char,
+    );
+}
+
+pub fn aa_parseoptions_c(
+    mut p: *mut aa_hardware_params,
+    mut r: *mut aa_renderparams,
+    argc: &mut std::ffi::c_int,
     argv: *mut *mut std::ffi::c_char,
 ) -> std::ffi::c_int {
     unsafe {
@@ -123,7 +148,7 @@ pub fn aa_parseoptions(
         if inparse == 0 {
             parseenv(p, r);
         }
-        if argc.is_null() || argv.is_null() {
+        if argv.is_null() {
             return 1 as std::ffi::c_int;
         }
         supported = if !p.is_null() {
@@ -643,68 +668,70 @@ pub fn aa_parseoptions(
         return 1 as std::ffi::c_int;
     }
 }
-unsafe extern "C" fn parseenv(p: *mut aa_hardware_params, r: *mut aa_renderparams) { unsafe {
-    let mut env: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
-    let mut argc: std::ffi::c_int = 1 as std::ffi::c_int;
-    let mut i: std::ffi::c_int = 0;
-    let mut argv: [*mut std::ffi::c_char; 256] = [0 as *mut std::ffi::c_char; 256];
-    let mut argv1: [*mut std::ffi::c_char; 256] = [0 as *mut std::ffi::c_char; 256];
-    inparse = 1 as std::ffi::c_int;
-    env = getenv(b"AAOPTS\0" as *const u8 as *const std::ffi::c_char);
-    if env.is_null() {
-        return;
-    }
-    if *env.offset(0 as std::ffi::c_int as isize) != 0 {
-        i = 0 as std::ffi::c_int;
-        while i < strlen(env) as std::ffi::c_int {
-            let mut s: std::ffi::c_int = 0;
-            let mut stop: std::ffi::c_char = ' ' as i32 as std::ffi::c_char;
-            while *env.offset(i as isize) as std::ffi::c_int == ' ' as i32 {
-                i += 1;
-                i;
-            }
-            if *env.offset(i as isize) as std::ffi::c_int == '"' as i32 {
-                i += 1;
-                i;
-                stop = '"' as i32 as std::ffi::c_char;
-            }
-            s = i;
-            while *env.offset(i as isize) as std::ffi::c_int != stop as std::ffi::c_int
-                && *env.offset(i as isize) as std::ffi::c_int != 0
-            {
-                i += 1;
-                i;
-            }
-            if i - s != 0 {
-                argv[argc as usize] = calloc(
-                    (i - s + 1 as std::ffi::c_int) as std::ffi::c_ulong,
-                    1 as std::ffi::c_int as std::ffi::c_ulong,
-                ) as *mut std::ffi::c_char;
-                argv1[argc as usize] = argv[argc as usize];
-                strncpy(
-                    argv[argc as usize],
-                    env.offset(s as isize),
-                    (i - s) as std::ffi::c_ulong,
-                );
-                argc += 1;
-                argc;
-                if argc == 255 as std::ffi::c_int {
-                    break;
+unsafe extern "C" fn parseenv(p: *mut aa_hardware_params, r: *mut aa_renderparams) {
+    unsafe {
+        let mut env: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
+        let mut argc: std::ffi::c_int = 1 as std::ffi::c_int;
+        let mut i: std::ffi::c_int = 0;
+        let mut argv: [*mut std::ffi::c_char; 256] = [0 as *mut std::ffi::c_char; 256];
+        let mut argv1: [*mut std::ffi::c_char; 256] = [0 as *mut std::ffi::c_char; 256];
+        inparse = 1 as std::ffi::c_int;
+        env = getenv(b"AAOPTS\0" as *const u8 as *const std::ffi::c_char);
+        if env.is_null() {
+            return;
+        }
+        if *env.offset(0 as std::ffi::c_int as isize) != 0 {
+            i = 0 as std::ffi::c_int;
+            while i < strlen(env) as std::ffi::c_int {
+                let mut s: std::ffi::c_int = 0;
+                let mut stop: std::ffi::c_char = ' ' as i32 as std::ffi::c_char;
+                while *env.offset(i as isize) as std::ffi::c_int == ' ' as i32 {
+                    i += 1;
+                    i;
                 }
+                if *env.offset(i as isize) as std::ffi::c_int == '"' as i32 {
+                    i += 1;
+                    i;
+                    stop = '"' as i32 as std::ffi::c_char;
+                }
+                s = i;
+                while *env.offset(i as isize) as std::ffi::c_int != stop as std::ffi::c_int
+                    && *env.offset(i as isize) as std::ffi::c_int != 0
+                {
+                    i += 1;
+                    i;
+                }
+                if i - s != 0 {
+                    argv[argc as usize] = calloc(
+                        (i - s + 1 as std::ffi::c_int) as std::ffi::c_ulong,
+                        1 as std::ffi::c_int as std::ffi::c_ulong,
+                    ) as *mut std::ffi::c_char;
+                    argv1[argc as usize] = argv[argc as usize];
+                    strncpy(
+                        argv[argc as usize],
+                        env.offset(s as isize),
+                        (i - s) as std::ffi::c_ulong,
+                    );
+                    argc += 1;
+                    argc;
+                    if argc == 255 as std::ffi::c_int {
+                        break;
+                    }
+                }
+                i += 1;
+                i;
             }
-            i += 1;
-            i;
         }
-    }
-    i = argc;
-    if i != 1 as std::ffi::c_int {
-        aa_parseoptions(p, r, &mut i, argv.as_mut_ptr());
-        i = 1 as std::ffi::c_int;
-        while i < argc {
-            free(argv1[i as usize] as *mut std::ffi::c_void);
-            i += 1;
-            i;
+        i = argc;
+        if i != 1 as std::ffi::c_int {
+            aa_parseoptions_c(p, r, &mut i, argv.as_mut_ptr());
+            i = 1 as std::ffi::c_int;
+            while i < argc {
+                free(argv1[i as usize] as *mut std::ffi::c_void);
+                i += 1;
+                i;
+            }
         }
+        inparse = 0 as std::ffi::c_int;
     }
-    inparse = 0 as std::ffi::c_int;
-}}
+}

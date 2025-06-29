@@ -6,6 +6,7 @@ use aastructs::aa_driver;
 extern crate c2rust_bitfields;
 extern crate libc;
 
+pub mod aaattributes;
 pub mod aaattrs;
 pub mod aacurkbd;
 pub mod aacurmou;
@@ -66,28 +67,24 @@ pub mod fontx16;
 
 #[cfg(test)]
 mod tests {
-    use crate::{
+    use super::{
+        aaattributes::*,
+        aaflush::aa_flush,
         aaimgheight::aa_imgheight,
         aaimgwidth::aa_imgwidth,
         aain::aa_getevent,
         aakbdreg::aa_autoinitkbd,
         aalib::aa_close,
+        aamasks::{AA_BOLD_MASK, AA_DIM_MASK, AA_NORMAL_MASK},
         aaout::aa_resizehandler,
+        aaout::{aa_hidecursor, aa_puts},
         aaparse::aa_parseoptions,
         aaputpixel::aa_putpixel,
-        aarender::{aa_defrenderparams, aa_getrenderparams, aa_render, aa_renderpalette},
-        aax::{AA_BOLD, AA_DIM},
-    };
-
-    use super::{
-        aaflush::aa_flush,
-        aamasks::{AA_BOLD_MASK, AA_DIM_MASK, AA_NORMAL_MASK},
-        aaout::{aa_hidecursor, aa_puts},
         aaregist::aa_autoinit,
+        aarender::{aa_defrenderparams, aa_getrenderparams, aa_render, aa_renderpalette},
         aascrheight::aa_scrheight,
         aascrwidth::aa_scrwidth,
         aastructs::*,
-        aax::{AA_NORMAL, AA_SPECIAL},
     };
     use std::{ffi::CString, thread, time::Duration};
 

@@ -1,3 +1,4 @@
+use super::aaattributes::*;
 use super::aagpm::__curses_usegpm;
 use super::aarec::aa_mouserecommended;
 use super::aarec::aa_recommendlow;
@@ -87,11 +88,6 @@ pub type __fd_mask = std::ffi::c_long;
 pub struct fd_set {
     pub __fds_bits: [__fd_mask; 16],
 }
-pub type aa_dithering_mode = std::ffi::c_uint;
-pub const AA_DITHERTYPES: aa_dithering_mode = 3;
-pub const AA_FLOYD_S: aa_dithering_mode = 2;
-pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
-pub const AA_NONE: aa_dithering_mode = 0;
 static mut iswaiting: std::ffi::c_int = 0;
 static mut __resized: std::ffi::c_int = 0;
 static mut buf: jmp_buf = [__jmp_buf_tag {
@@ -99,120 +95,129 @@ static mut buf: jmp_buf = [__jmp_buf_tag {
     __mask_was_saved: 0,
     __saved_mask: __sigset_t { __val: [0; 16] },
 }; 1];
-unsafe extern "C" fn handler(i: std::ffi::c_int) { unsafe {
-    __resized = 2 as std::ffi::c_int;
-    signal(
-        28 as std::ffi::c_int,
-        Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
-    );
-    if iswaiting != 0 {
-        longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
-    }
-}}
-unsafe fn stdin_init(context: *mut aa_context, mode: i64) -> i64 { unsafe {
-    signal(
-        28 as std::ffi::c_int,
-        Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
-    );
-    aa_recommendlow(
-        &mut aa_mouserecommended,
-        b"gpm\0" as *const u8 as *const std::ffi::c_char,
-    );
-    return 1;
-}}
-unsafe fn stdin_uninit(c: *mut aa_context) { unsafe {
-    signal(
-        28 as std::ffi::c_int,
-        ::core::mem::transmute::<libc::intptr_t, __sighandler_t>(
-            1 as std::ffi::c_int as libc::intptr_t,
-        ),
-    );
-}}
-unsafe fn stdin_getchar(c1: *mut aa_context, wait: i64) -> i64 { unsafe {
-    let mut c: std::ffi::c_int = 0;
-    let mut flag: std::ffi::c_int = 0;
-    let mut tv: timeval = timeval {
-        tv_sec: 0,
-        tv_usec: 0,
-    };
-    if wait != 0 {
-        _setjmp(buf.as_mut_ptr());
-        iswaiting = 1 as std::ffi::c_int;
-    }
-    if __resized == 2 as std::ffi::c_int {
-        __resized = 1 as std::ffi::c_int;
-        return 258;
-    }
-    if wait == 0 {
-        let mut readfds: fd_set = fd_set {
-            __fds_bits: [0; 16],
-        };
-        tv.tv_sec = 0 as std::ffi::c_int as __time_t;
-        tv.tv_usec = 0 as std::ffi::c_int as __suseconds_t;
-        let mut __i: std::ffi::c_uint = 0;
-        let mut __arr: *mut fd_set = &mut readfds;
-        __i = 0 as std::ffi::c_int as std::ffi::c_uint;
-        while (__i as std::ffi::c_ulong)
-            < (::core::mem::size_of::<fd_set>() as std::ffi::c_ulong)
-                .wrapping_div(::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong)
-        {
-            (*__arr).__fds_bits[__i as usize] = 0 as std::ffi::c_int as __fd_mask;
-            __i = __i.wrapping_add(1);
-            __i;
-        }
-        let fd: usize = 0;
-        readfds.__fds_bits[fd / (8 * std::mem::size_of::<__fd_mask>())] |=
-            (1 as __fd_mask) << (fd % (8 * std::mem::size_of::<__fd_mask>()));
-
-        if __curses_usegpm != 0 {
-            readfds.__fds_bits[(gpm_fd
-                / (8 as std::ffi::c_int
-                    * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong as std::ffi::c_int))
-                as usize] |= ((1 as std::ffi::c_ulong)
-                << gpm_fd
-                    % (8 as std::ffi::c_int
-                        * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
-                            as std::ffi::c_int)) as __fd_mask;
-        }
-        flag = select(
-            (if __curses_usegpm != 0 {
-                gpm_fd
-            } else {
-                0 as std::ffi::c_int
-            }) + 1 as std::ffi::c_int,
-            &mut readfds,
-            0 as *mut fd_set,
-            0 as *mut fd_set,
-            &mut tv,
+unsafe extern "C" fn handler(i: std::ffi::c_int) {
+    unsafe {
+        __resized = 2 as std::ffi::c_int;
+        signal(
+            28 as std::ffi::c_int,
+            Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
         );
-        if flag == 0 {
+        if iswaiting != 0 {
+            longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
+        }
+    }
+}
+unsafe fn stdin_init(context: *mut aa_context, mode: i64) -> i64 {
+    unsafe {
+        signal(
+            28 as std::ffi::c_int,
+            Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
+        );
+        aa_recommendlow(
+            &mut aa_mouserecommended,
+            b"gpm\0" as *const u8 as *const std::ffi::c_char,
+        );
+        return 1;
+    }
+}
+unsafe fn stdin_uninit(c: *mut aa_context) {
+    unsafe {
+        signal(
+            28 as std::ffi::c_int,
+            ::core::mem::transmute::<libc::intptr_t, __sighandler_t>(
+                1 as std::ffi::c_int as libc::intptr_t,
+            ),
+        );
+    }
+}
+unsafe fn stdin_getchar(c1: *mut aa_context, wait: i64) -> i64 {
+    unsafe {
+        let mut c: std::ffi::c_int = 0;
+        let mut flag: std::ffi::c_int = 0;
+        let mut tv: timeval = timeval {
+            tv_sec: 0,
+            tv_usec: 0,
+        };
+        if wait != 0 {
+            _setjmp(buf.as_mut_ptr());
+            iswaiting = 1 as std::ffi::c_int;
+        }
+        if __resized == 2 as std::ffi::c_int {
+            __resized = 1 as std::ffi::c_int;
+            return 258;
+        }
+        if wait == 0 {
+            let mut readfds: fd_set = fd_set {
+                __fds_bits: [0; 16],
+            };
+            tv.tv_sec = 0 as std::ffi::c_int as __time_t;
+            tv.tv_usec = 0 as std::ffi::c_int as __suseconds_t;
+            let mut __i: std::ffi::c_uint = 0;
+            let mut __arr: *mut fd_set = &mut readfds;
+            __i = 0 as std::ffi::c_int as std::ffi::c_uint;
+            while (__i as std::ffi::c_ulong)
+                < (::core::mem::size_of::<fd_set>() as std::ffi::c_ulong)
+                    .wrapping_div(::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong)
+            {
+                (*__arr).__fds_bits[__i as usize] = 0 as std::ffi::c_int as __fd_mask;
+                __i = __i.wrapping_add(1);
+                __i;
+            }
+            let fd: usize = 0;
+            readfds.__fds_bits[fd / (8 * std::mem::size_of::<__fd_mask>())] |=
+                (1 as __fd_mask) << (fd % (8 * std::mem::size_of::<__fd_mask>()));
+
+            if __curses_usegpm != 0 {
+                readfds.__fds_bits[(gpm_fd
+                    / (8 as std::ffi::c_int
+                        * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
+                            as std::ffi::c_int)) as usize] |= ((1 as std::ffi::c_ulong)
+                    << gpm_fd
+                        % (8 as std::ffi::c_int
+                            * ::core::mem::size_of::<__fd_mask>() as std::ffi::c_ulong
+                                as std::ffi::c_int))
+                    as __fd_mask;
+            }
+            flag = select(
+                (if __curses_usegpm != 0 {
+                    gpm_fd
+                } else {
+                    0 as std::ffi::c_int
+                }) + 1 as std::ffi::c_int,
+                &mut readfds,
+                0 as *mut fd_set,
+                0 as *mut fd_set,
+                &mut tv,
+            );
+            if flag == 0 {
+                return AA_NONE.try_into().unwrap();
+            }
+        }
+        if __curses_usegpm != 0 {
+            c = Gpm_Getc(stdin);
+        } else {
+            c = getc(stdin);
+        }
+        iswaiting = 0 as std::ffi::c_int;
+        if c == 27 as std::ffi::c_int {
+            return 305;
+        }
+        if c == 10 as std::ffi::c_int {
+            return 13;
+        }
+        if c > 0 as std::ffi::c_int && c < 127 as std::ffi::c_int && c != 127 as std::ffi::c_int {
+            return c.try_into().unwrap();
+        }
+        match c {
+            127 => return 304,
+            _ => {}
+        }
+        if feof(stdin) != 0 {
             return AA_NONE.try_into().unwrap();
         }
+        return 400;
     }
-    if __curses_usegpm != 0 {
-        c = Gpm_Getc(stdin);
-    } else {
-        c = getc(stdin);
-    }
-    iswaiting = 0 as std::ffi::c_int;
-    if c == 27 as std::ffi::c_int {
-        return 305;
-    }
-    if c == 10 as std::ffi::c_int {
-        return 13;
-    }
-    if c > 0 as std::ffi::c_int && c < 127 as std::ffi::c_int && c != 127 as std::ffi::c_int {
-        return c.try_into().unwrap();
-    }
-    match c {
-        127 => return 304,
-        _ => {}
-    }
-    if feof(stdin) != 0 {
-        return AA_NONE.try_into().unwrap();
-    }
-    return 400;
-}}
+}
 
 #[unsafe(no_mangle)]
 pub static mut kbd_stdin_d: aa_kbddriver = unsafe {

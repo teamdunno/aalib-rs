@@ -1,20 +1,7 @@
+use super::aaattributes::*;
 use super::aastructs::*;
 
-pub type aa_attribute = std::ffi::c_uint;
-pub const AA_SPECIAL: aa_attribute = 5;
-pub const AA_REVERSE: aa_attribute = 4;
-pub const AA_BOLDFONT: aa_attribute = 3;
-pub const AA_BOLD: aa_attribute = 2;
-pub const AA_DIM: aa_attribute = 1;
-pub const AA_NORMAL: aa_attribute = 0;
-
-pub fn aa_puts(
-    c: *mut aa_context,
-    x: i64,
-    y: i64,
-    attr: aa_attribute,
-    s: *const std::ffi::c_char,
-) {
+pub fn aa_puts(c: *mut aa_context, x: i64, y: i64, attr: aa_attribute, s: *const std::ffi::c_char) {
     unsafe {
         let mut s1: [std::ffi::c_char; 10000] = [0; 10000];
         let mut pos = 0;
@@ -48,10 +35,7 @@ pub fn aa_puts(
     }
 }
 
-pub fn aa_resizehandler(
-    c: *mut aa_context,
-    handler: Option<unsafe fn(*mut aa_context) -> ()>,
-) {
+pub fn aa_resizehandler(c: *mut aa_context, handler: Option<unsafe fn(*mut aa_context) -> ()>) {
     unsafe {
         (*c).resizehandler = handler;
     }

@@ -1,138 +1,132 @@
+use super::aaattributes::*;
 use super::aastructs::*;
 
 unsafe extern "C" {
     fn __ctype_b_loc() -> *mut *const std::ffi::c_ushort;
 }
-pub type aa_attribute = std::ffi::c_uint;
-pub const AA_SPECIAL: aa_attribute = 5;
-pub const AA_REVERSE: aa_attribute = 4;
-pub const AA_BOLDFONT: aa_attribute = 3;
-pub const AA_BOLD: aa_attribute = 2;
-pub const AA_DIM: aa_attribute = 1;
-pub const AA_NORMAL: aa_attribute = 0;
 static mut DIMC: std::ffi::c_double = 0.;
 static mut CONSTANT: std::ffi::c_double = 0.;
 static mut currfont: *const aa_font = 0 as *const aa_font;
-unsafe fn values(
-    mut c: i64,
-    v1: &mut i64,
-    v2: &mut i64,
-    v3: &mut i64,
-    v4: &mut i64,
-) { unsafe {
-    let mut i = 0;
-    let attr = c / 256;
-    let mut font: *const std::ffi::c_uchar = 0 as *const std::ffi::c_uchar;
-    font = (*currfont).data;
-    font = (*currfont).data;
-    c = c % 256;
-    c = c * (*currfont).height;
-    *v1 = 0;
-    *v2 = 0;
-    *v3 = 0;
-    *v4 = 0;
-    i = 0;
-    while i < (*currfont).height / 2 {
-        *v1 += ((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 1 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 2 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 3 != 0) as i32) as i64;
-        *v2 += ((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 5 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 6 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 7 != 0) as i32) as i64;
-        i += 1;
-    }
-    while i < (*currfont).height {
-        *v3 += ((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 1 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 2 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 3 != 0) as i32) as i64;
-        *v4 += ((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 5 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 6 != 0) as i32
-            + (*font.offset((c + i) as isize) & (1) << 7 != 0) as i32) as i64;
-        i += 1;
-    }
-    *v1 *= 8;
-    *v2 *= 8;
-    *v3 *= 8;
-    *v4 *= 8;
-    match attr {
-        4 => {
-            *v1 = (*currfont).height * 2 * 8 - *v1;
-            *v2 = (*currfont).height * 2 * 8 - *v2;
-            *v3 = (*currfont).height * 2 * 8 - *v3;
-            *v4 = (*currfont).height * 2 * 8 - *v4;
+unsafe fn values(mut c: i64, v1: &mut i64, v2: &mut i64, v3: &mut i64, v4: &mut i64) {
+    unsafe {
+        let mut i = 0;
+        let attr = c / 256;
+        let mut font: *const std::ffi::c_uchar = 0 as *const std::ffi::c_uchar;
+        font = (*currfont).data;
+        font = (*currfont).data;
+        c = c % 256;
+        c = c * (*currfont).height;
+        *v1 = 0;
+        *v2 = 0;
+        *v3 = 0;
+        *v4 = 0;
+        i = 0;
+        while i < (*currfont).height / 2 {
+            *v1 += ((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 1 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 2 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 3 != 0) as i32)
+                as i64;
+            *v2 += ((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 5 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 6 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 7 != 0) as i32)
+                as i64;
+            i += 1;
         }
-        1 => {
-            *v1 = ((*v1 + 1) as f64 / DIMC) as i64;
-            *v2 = ((*v2 + 1) as f64 / DIMC) as i64;
-            *v3 = ((*v3 + 1) as f64 / DIMC) as i64;
-            *v4 = ((*v4 + 1) as f64 / DIMC) as i64;
+        while i < (*currfont).height {
+            *v3 += ((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 1 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 2 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 3 != 0) as i32)
+                as i64;
+            *v4 += ((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 5 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 6 != 0) as i32
+                + (*font.offset((c + i) as isize) & (1) << 7 != 0) as i32)
+                as i64;
+            i += 1;
         }
-        2 => {
-            *v1 = (*v1 as f64 * CONSTANT) as i64;
-            *v2 = (*v2 as f64 * CONSTANT) as i64;
-            *v3 = (*v3 as f64 * CONSTANT) as i64;
-            *v4 = (*v4 as f64 * CONSTANT) as i64;
-        }
-        3 => {
-            i = 0;
-            while i < (*currfont).height / 2 {
-                *v1 += (((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 1 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 1 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 2 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 2 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 3 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 3 - 1 != 0)
-                        as i32)
-                    * 8 as i32) as i64;
-                *v2 += (((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 5 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 5 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 6 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 6 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 7 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 7 - 1 != 0)
-                        as i32)
-                    * 8) as i64;
-                i += 1;
+        *v1 *= 8;
+        *v2 *= 8;
+        *v3 *= 8;
+        *v4 *= 8;
+        match attr {
+            4 => {
+                *v1 = (*currfont).height * 2 * 8 - *v1;
+                *v2 = (*currfont).height * 2 * 8 - *v2;
+                *v3 = (*currfont).height * 2 * 8 - *v3;
+                *v4 = (*currfont).height * 2 * 8 - *v4;
             }
-            while i < (*currfont).height {
-                *v3 += (((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 1 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 1 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 2 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 2 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 3 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 3 - 1 != 0)
-                        as i32)
-                    * 8) as i64;
-                *v4 += (((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 5 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 5 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 6 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 6 - 1 != 0)
-                        as i32
-                    + (!(*font.offset((c + i) as isize) & (1) << 7 != 0)
-                        && *font.offset((c + i) as isize) & (1) << 7 - 1 != 0)
-                        as i32) as i32
-                    * 8) as i64;
-                i += 1;
+            1 => {
+                *v1 = ((*v1 + 1) as f64 / DIMC) as i64;
+                *v2 = ((*v2 + 1) as f64 / DIMC) as i64;
+                *v3 = ((*v3 + 1) as f64 / DIMC) as i64;
+                *v4 = ((*v4 + 1) as f64 / DIMC) as i64;
             }
-        }
-        _ => {}
-    };
-}}
+            2 => {
+                *v1 = (*v1 as f64 * CONSTANT) as i64;
+                *v2 = (*v2 as f64 * CONSTANT) as i64;
+                *v3 = (*v3 as f64 * CONSTANT) as i64;
+                *v4 = (*v4 as f64 * CONSTANT) as i64;
+            }
+            3 => {
+                i = 0;
+                while i < (*currfont).height / 2 {
+                    *v1 += (((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 1 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 1 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 2 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 2 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 3 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 3 - 1 != 0)
+                            as i32)
+                        * 8 as i32) as i64;
+                    *v2 += (((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 5 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 5 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 6 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 6 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 7 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 7 - 1 != 0)
+                            as i32)
+                        * 8) as i64;
+                    i += 1;
+                }
+                while i < (*currfont).height {
+                    *v3 += (((*font.offset((c + i) as isize) & (1) << 0 != 0) as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 1 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 1 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 2 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 2 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 3 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 3 - 1 != 0)
+                            as i32)
+                        * 8) as i64;
+                    *v4 += (((*font.offset((c + i) as isize) & (1) << 4 != 0) as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 5 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 5 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 6 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 6 - 1 != 0)
+                            as i32
+                        + (!(*font.offset((c + i) as isize) & (1) << 7 != 0)
+                            && *font.offset((c + i) as isize) & (1) << 7 - 1 != 0)
+                            as i32) as i32
+                        * 8) as i64;
+                    i += 1;
+                }
+            }
+            _ => {}
+        };
+    }
+}
 
 pub fn __aa_calcparams(
     font: *const aa_font,

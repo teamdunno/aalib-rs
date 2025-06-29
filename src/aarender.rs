@@ -1,3 +1,4 @@
+use super::aaattributes::*;
 use super::aamktabl::aa_mktable;
 use super::aastructs::*;
 
@@ -7,11 +8,6 @@ unsafe extern "C" {
     fn abs(_: std::ffi::c_int) -> std::ffi::c_int;
     fn pow(_: std::ffi::c_double, _: std::ffi::c_double) -> std::ffi::c_double;
 }
-pub type aa_dithering_mode = std::ffi::c_uint;
-pub const AA_DITHERTYPES: aa_dithering_mode = 3;
-pub const AA_FLOYD_S: aa_dithering_mode = 2;
-pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
-pub const AA_NONE: aa_dithering_mode = 0;
 pub type aa_palette = [std::ffi::c_int; 256];
 
 pub static mut aa_defrenderparams: aa_renderparams = {
