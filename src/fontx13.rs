@@ -3333,7 +3333,7 @@ pub static mut fontX13data: [std::ffi::c_uchar; 3328] = [
 
 pub static mut aa_fontX13: aa_font = unsafe {
     {
-        let mut init = aa_font {
+        let init = aa_font {
             data: fontX13data.as_ptr(),
             height: 13,
             name: b"X 8x13 font\0" as *const u8 as *const std::ffi::c_char,

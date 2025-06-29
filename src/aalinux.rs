@@ -131,7 +131,7 @@ pub struct consolefontdesc {
 #[unsafe(no_mangle)]
 pub static mut linux_d: aa_driver = unsafe {
     {
-        let mut init = aa_driver {
+        let init = aa_driver {
             shortname: b"linux\0" as *const u8 as *const std::ffi::c_char,
             name: b"Linux pc console driver 1.0\0" as *const u8 as *const std::ffi::c_char,
             init: Some(linux_init),
@@ -170,7 +170,7 @@ static mut vc: [*mut FILE; 10] = [0 as *const FILE as *mut FILE; 10];
 static mut nvcs: i64 = 0;
 static mut sizes: [[i64; 10]; 2] = [[0; 10]; 2];
 static mut cursor_visible: i64 = 1;
-unsafe fn linux_cursor(mut c: *mut aa_context, mut mode: i64) {
+unsafe fn linux_cursor(c: *mut aa_context, mode: i64) { unsafe {
     cursor_visible = mode;
     linux_gotoxy(c, cursorx, cursory);
     if mode != 0 {
@@ -179,13 +179,13 @@ unsafe fn linux_cursor(mut c: *mut aa_context, mut mode: i64) {
         println!("\x1B[?25l\0");
     }
     fflush(stdout);
-}
+}}
 unsafe fn linux_init(
-    mut p: *const aa_hardware_params,
-    mut none: *const std::ffi::c_void,
-    mut dest: *mut aa_hardware_params,
-    mut params: *mut *mut std::ffi::c_void,
-) -> i64 {
+    p: *const aa_hardware_params,
+    none: *const std::ffi::c_void,
+    dest: *mut aa_hardware_params,
+    params: *mut *mut std::ffi::c_void,
+) -> i64 { unsafe {
     static mut registered: i64 = 0;
     static mut font: aa_font = aa_font {
         data: 0 as *const std::ffi::c_uchar,
@@ -194,7 +194,7 @@ unsafe fn linux_init(
         shortname: 0 as *const std::ffi::c_char,
     };
     static mut def: aa_hardware_params = {
-        let mut init = aa_hardware_params {
+        let init = aa_hardware_params {
             font: 0 as *const aa_font,
             supported: 2 | 16 | 1 | 4 | (128 | 256),
             minwidth: 0,
@@ -351,7 +351,7 @@ unsafe fn linux_init(
                     y = 0;
                     i = 0;
                     while i < 8192 {
-                        if i64::from((i % 32)) < font.height {
+                        if i64::from(i % 32) < font.height {
                             *data.offset(y as isize) = *(desc.chardata).offset(i as isize);
                             y += 1;
                             y;
@@ -382,8 +382,8 @@ unsafe fn linux_init(
         b"curses\0" as *const u8 as *const std::ffi::c_char,
     );
     return 1;
-}
-unsafe fn linux_uninit(mut c: *mut aa_context) {
+}}
+unsafe fn linux_uninit(c: *mut aa_context) { unsafe {
     let mut i = 0;
     i = 0;
     while i < nvcs {
@@ -391,11 +391,11 @@ unsafe fn linux_uninit(mut c: *mut aa_context) {
         i += 1;
         i;
     }
-}
-unsafe fn linux_getsize(mut c: *mut aa_context, mut width: &mut i64, mut height: &mut i64) {
+}}
+unsafe fn linux_getsize(c: *mut aa_context, width: &mut i64, height: &mut i64) { unsafe {
     let mut i = 0;
     let mut scrn: C2RustUnnamed_0 = {
-        let mut init = C2RustUnnamed_0 {
+        let init = C2RustUnnamed_0 {
             lines: 0 as std::ffi::c_uchar,
             cols: 0 as std::ffi::c_uchar,
             x: 0 as std::ffi::c_uchar,
@@ -446,15 +446,15 @@ unsafe fn linux_getsize(mut c: *mut aa_context, mut width: &mut i64, mut height:
     }
     gpm_mx = (*width - 1) as i32;
     gpm_my = (*height - 1) as i32;
-}
-unsafe fn linux_flush(mut c: *mut aa_context) {
+}}
+unsafe fn linux_flush(c: *mut aa_context) { unsafe {
     let mut i = 0;
     let mut x = 0;
     let mut y = 0;
     let mut xstart = 0;
-    let mut xend = 0;
-    let mut end = (*c).params.width * (*c).params.height;
-    let mut data: [std::ffi::c_uchar; 6] = [
+    let xend = 0;
+    let end = (*c).params.width * (*c).params.height;
+    let data: [std::ffi::c_uchar; 6] = [
         0x7 as std::ffi::c_uchar,
         0x8 as std::ffi::c_uchar,
         0xf as std::ffi::c_uchar,
@@ -467,7 +467,7 @@ unsafe fn linux_flush(mut c: *mut aa_context) {
         fseek(vc[i as usize], 4, 0);
         y = 0;
         while y < (*c).params.height {
-            let mut start = y * (*c).params.width;
+            let start = y * (*c).params.width;
             x = xstart;
             while x < xstart + sizes[0][i as usize] {
                 putc(
@@ -494,8 +494,8 @@ unsafe fn linux_flush(mut c: *mut aa_context) {
         i += 1;
         i;
     }
-}
-unsafe fn linux_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
+}}
+unsafe fn linux_gotoxy(c: *mut aa_context, x: i64, y: i64) { unsafe {
     let mut n = 0;
     let mut i = 0;
     let mut scrn: C2RustUnnamed = C2RustUnnamed {
@@ -530,4 +530,4 @@ unsafe fn linux_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
         i += 1;
     }
     fflush(vc[i as usize]);
-}
+}}

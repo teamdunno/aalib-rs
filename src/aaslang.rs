@@ -81,7 +81,7 @@ pub const AA_NORMAL: aa_attribute = 0;
 #[unsafe(no_mangle)]
 pub static mut slang_d: aa_driver = unsafe {
     {
-        let mut init = aa_driver {
+        let init = aa_driver {
             shortname: b"slang\0" as *const u8 as *const std::ffi::c_char,
             name: b"Slang driver 1.0\0" as *const u8 as *const std::ffi::c_char,
             init: Some(slang_init),
@@ -102,13 +102,13 @@ pub static mut __slang_is_up: std::ffi::c_int = 0 as std::ffi::c_int;
 pub static mut __resized_slang: std::ffi::c_int = 0 as std::ffi::c_int;
 static mut uninitslang: std::ffi::c_int = 0;
 unsafe fn slang_init(
-    mut p: *const aa_hardware_params,
-    mut none: *const std::ffi::c_void,
-    mut dest: *mut aa_hardware_params,
-    mut params: *mut *mut std::ffi::c_void,
-) -> i64 {
-    let mut def: aa_hardware_params = {
-        let mut init = aa_hardware_params {
+    p: *const aa_hardware_params,
+    none: *const std::ffi::c_void,
+    dest: *mut aa_hardware_params,
+    params: *mut *mut std::ffi::c_void,
+) -> i64 { unsafe {
+    let def: aa_hardware_params = {
+        let init = aa_hardware_params {
             font: 0 as *const aa_font,
             supported: 1 | 4 | 16 | 8 | 2,
             minwidth: 0,
@@ -154,15 +154,15 @@ unsafe fn slang_init(
         b"slang\0" as *const u8 as *const std::ffi::c_char,
     );
     return 1;
-}
-unsafe fn slang_uninit(mut c: *mut aa_context) {
+}}
+unsafe fn slang_uninit(c: *mut aa_context) { unsafe {
     SLsmg_reset_smg();
     if uninitslang != 0 {
         uninitslang = 0 as std::ffi::c_int;
         __slang_is_up = 0 as std::ffi::c_int;
     }
-}
-unsafe fn slang_getsize(mut c: *mut aa_context, mut width: &mut i64, mut height: &mut i64) {
+}}
+unsafe fn slang_getsize(c: *mut aa_context, width: &mut i64, height: &mut i64) { unsafe {
     SLtt_get_screen_size();
     SLsmg_reset_smg();
     if SLsmg_init_smg() != 0 as std::ffi::c_int {
@@ -238,19 +238,19 @@ unsafe fn slang_getsize(mut c: *mut aa_context, mut width: &mut i64, mut height:
     *height = SLtt_Screen_Rows as i64;
     gpm_mx = *width as i32;
     gpm_my = *height as i32;
-}
-unsafe fn slang_setattr(mut c: *mut aa_context, mut attr: i64) {
+}}
+unsafe fn slang_setattr(c: *mut aa_context, attr: i64) { unsafe {
     SLsmg_set_color(attr as SLsmg_Color_Type);
-}
-unsafe fn slang_print(mut c: *mut aa_context, mut text: *const std::ffi::c_char) {
+}}
+unsafe fn slang_print(c: *mut aa_context, text: *const std::ffi::c_char) { unsafe {
     SLsmg_write_string(text as *mut std::ffi::c_char);
-}
-unsafe fn slang_flush(mut c: *mut aa_context) {
+}}
+unsafe fn slang_flush(c: *mut aa_context) { unsafe {
     SLsmg_refresh();
-}
-unsafe fn slang_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
+}}
+unsafe fn slang_gotoxy(c: *mut aa_context, x: i64, y: i64) { unsafe {
     SLsmg_gotorc(y as std::ffi::c_int, x as std::ffi::c_int);
-}
-unsafe fn slang_cursor(mut c: *mut aa_context, mut mode: i64) {
+}}
+unsafe fn slang_cursor(c: *mut aa_context, mode: i64) { unsafe {
     SLtt_set_cursor_visibility(mode as std::ffi::c_int);
-}
+}}

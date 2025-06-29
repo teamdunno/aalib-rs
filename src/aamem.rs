@@ -1,12 +1,12 @@
 use super::aastructs::*;
 
 unsafe fn mem_init(
-    mut p: *const aa_hardware_params,
-    mut none: *const std::ffi::c_void,
-    mut dest: *mut aa_hardware_params,
-    mut params: *mut *mut std::ffi::c_void,
-) -> i64 {
-    let mut def: aa_hardware_params = aa_hardware_params {
+    p: *const aa_hardware_params,
+    none: *const std::ffi::c_void,
+    dest: *mut aa_hardware_params,
+    params: *mut *mut std::ffi::c_void,
+) -> i64 { unsafe {
+    let def: aa_hardware_params = aa_hardware_params {
         font: 0 as *const aa_font,
         supported: 2 | 16 | 1 | 4 | (128 | 256),
         minwidth: 0,
@@ -24,7 +24,7 @@ unsafe fn mem_init(
     };
     *dest = def;
     return 1;
-}
+}}
 unsafe fn mem_uninit(_: *mut aa_context) {}
 unsafe fn mem_getsize(_: *mut aa_context, _: &mut i64, _: &mut i64) {}
 unsafe fn mem_flush(_: *mut aa_context) {}
@@ -32,7 +32,7 @@ unsafe fn mem_gotoxy(_: *mut aa_context, _: i64, _: i64) {}
 
 pub static mut mem_d: aa_driver = unsafe {
     {
-        let mut init = aa_driver {
+        let init = aa_driver {
             shortname: b"mem\0" as *const u8 as *const std::ffi::c_char,
             name: b"Dummy memory driver 1.0\0" as *const u8 as *const std::ffi::c_char,
             init: Some(mem_init),

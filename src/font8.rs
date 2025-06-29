@@ -2053,7 +2053,7 @@ pub static mut font8data: [std::ffi::c_uchar; 2048] = [
 
 pub static mut aa_font8: aa_font = unsafe {
     {
-        let mut init = aa_font {
+        let init = aa_font {
             data: font8data.as_ptr(),
             height: 8,
             name: b"Standard vga 8x8 font\0" as *const u8 as *const std::ffi::c_char,

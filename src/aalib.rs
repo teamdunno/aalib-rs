@@ -14,7 +14,7 @@ unsafe extern "C" {
 }
 
 pub static mut aa_defparams: aa_hardware_params = {
-    let mut init = aa_hardware_params {
+    let init = aa_hardware_params {
         font: 0 as *const aa_font,
         supported: 1 | 2 | 4,
         minwidth: 0,
@@ -33,7 +33,7 @@ pub static mut aa_defparams: aa_hardware_params = {
     init
 };
 
-pub fn aa_uninitmouse(mut c: *mut aa_context) {
+pub fn aa_uninitmouse(c: *mut aa_context) {
     unsafe {
         if !((*c).mousedriver).is_null() {
             ((*(*c).mousedriver).uninit).expect("non-null function pointer")(c);
@@ -47,7 +47,7 @@ pub fn aa_uninitmouse(mut c: *mut aa_context) {
     }
 }
 
-pub fn aa_uninitkbd(mut c: *mut aa_context) {
+pub fn aa_uninitkbd(c: *mut aa_context) {
     unsafe {
         if !((*c).kbddriver).is_null() {
             if !((*c).mousedriver).is_null() {
@@ -64,7 +64,7 @@ pub fn aa_uninitkbd(mut c: *mut aa_context) {
     }
 }
 
-pub fn aa_resize(mut c: *mut aa_context) -> i64 {
+pub fn aa_resize(c: *mut aa_context) -> i64 {
     unsafe {
         let mut width = 0;
         let mut height = 0;
@@ -154,9 +154,9 @@ pub fn aa_resize(mut c: *mut aa_context) -> i64 {
 }
 
 pub fn aa_init(
-    mut driver: *const aa_driver,
-    mut defparams: *const aa_hardware_params,
-    mut driverdata: *const std::ffi::c_void,
+    driver: *const aa_driver,
+    defparams: *const aa_hardware_params,
+    driverdata: *const std::ffi::c_void,
 ) -> *mut aa_context {
     unsafe {
         let mut c: *mut aa_context = 0 as *mut aa_context;
@@ -316,7 +316,7 @@ pub fn aa_init(
         return c;
     }
 }
-fn aa_invalidate(mut c: *mut aa_context) {
+fn aa_invalidate(c: *mut aa_context) {
     unsafe {
         if !((*c).table).is_null() {
             free((*c).table as *mut std::ffi::c_void);
@@ -333,14 +333,14 @@ fn aa_invalidate(mut c: *mut aa_context) {
     }
 }
 
-pub fn aa_setfont(mut c: *mut aa_context, mut font: *const aa_font) {
+pub fn aa_setfont(c: *mut aa_context, font: *const aa_font) {
     unsafe {
         (*c).params.font = font;
         aa_invalidate(c);
     }
 }
 
-pub fn aa_setsupported(mut c: *mut aa_context, mut supported: u32) {
+pub fn aa_setsupported(c: *mut aa_context, supported: u32) {
     unsafe {
         (*c).params.supported = (*c).driverparams.supported & supported as i64;
         if (*c).params.supported == 0 {
@@ -350,7 +350,7 @@ pub fn aa_setsupported(mut c: *mut aa_context, mut supported: u32) {
     }
 }
 
-pub fn aa_close(mut c: *mut aa_context) {
+pub fn aa_close(c: *mut aa_context) {
     unsafe {
         if (*c).cursorstate < 0 && ((*(*c).driver).cursormode).is_some() {
             ((*(*c).driver).cursormode).expect("non-null function pointer")(c, 1);

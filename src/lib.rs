@@ -1,5 +1,4 @@
-#![allow(warnings)]
-#![allow(mutable_transmutes, static_mut_refs)]
+#![allow(mutable_transmutes, static_mut_refs, warnings)]
 
 use aastructs::aa_driver;
 

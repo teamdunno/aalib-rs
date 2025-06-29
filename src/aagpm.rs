@@ -67,9 +67,9 @@ static mut mousey: i64 = 0;
 static mut mousebuttons: i32 = 0;
 
 pub unsafe extern "C" fn __gpm_user_handler(
-    mut event: *mut Gpm_Event,
-    mut data: *mut std::ffi::c_void,
-) -> i32 {
+    event: *mut Gpm_Event,
+    data: *mut std::ffi::c_void,
+) -> i32 { unsafe {
     mousex = (*event).x as i64;
     mousey = (*event).y as i64;
     mousebuttons = (*event).buttons as i32;
@@ -80,8 +80,8 @@ pub unsafe extern "C" fn __gpm_user_handler(
         mousebuttons = 0 as i32;
     }
     return 0o631 as i32;
-}
-unsafe fn gpm_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
+}}
+unsafe fn gpm_init(context: *mut aa_context, mode: i64) -> i64 { unsafe {
     conn.eventMask = ((if mode & 1 != 0 {
         GPM_MOVE | GPM_DRAG
     } else {
@@ -104,12 +104,12 @@ unsafe fn gpm_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
     gpm_visiblepointer = 1 as i32;
     gpm_hflag = 1 as i32;
     return 1;
-}
-unsafe fn gpm_uninit(mut c: *mut aa_context) {
+}}
+unsafe fn gpm_uninit(c: *mut aa_context) { unsafe {
     __curses_usegpm = 0 as i32;
     Gpm_Close();
-}
-unsafe fn gpm_mouse(mut c: *mut aa_context, mut x: *mut i64, mut y: *mut i64, mut b: *mut i64) {
+}}
+unsafe fn gpm_mouse(c: *mut aa_context, x: *mut i64, y: *mut i64, b: *mut i64) { unsafe {
     *x = mousex;
     *y = mousey;
     *b = 0;
@@ -122,14 +122,14 @@ unsafe fn gpm_mouse(mut c: *mut aa_context, mut x: *mut i64, mut y: *mut i64, mu
     if mousebuttons & 1 != 0 {
         *b |= 4;
     }
-}
-unsafe fn gpm_mousemode(mut c: *mut aa_context, mut m: i64) {
+}}
+unsafe fn gpm_mousemode(c: *mut aa_context, m: i64) { unsafe {
     gpm_visiblepointer = m as i32;
-}
+}}
 
 pub static mut mouse_gpm_d: aa_mousedriver = unsafe {
     {
-        let mut init = aa_mousedriver {
+        let init = aa_mousedriver {
             shortname: b"gpm\0" as *const u8 as *const std::ffi::c_char,
             name: b"Gpm mouse driver 1.0\0" as *const u8 as *const std::ffi::c_char,
             flags: 7 | 8,

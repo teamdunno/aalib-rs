@@ -93,7 +93,7 @@ static mut irc_escapes: [*const std::ffi::c_char; 3] = [
 
 pub static mut aa_nhtml_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 79,
             height: 36,
             pagewidth: 79,
@@ -138,7 +138,7 @@ pub static mut aa_nhtml_format: aa_format = unsafe {
 
 pub static mut aa_html_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 79,
             height: 25,
             pagewidth: 79,
@@ -181,7 +181,7 @@ pub static mut aa_html_format: aa_format = unsafe {
 };
 
 pub static mut aa_ansi_format: aa_format = {
-    let mut init = aa_format {
+    let init = aa_format {
         width: 80,
         height: 25,
         pagewidth: 80,
@@ -221,7 +221,7 @@ pub static mut aa_ansi_format: aa_format = {
 };
 
 pub static mut aa_text_format: aa_format = {
-    let mut init = aa_format {
+    let init = aa_format {
         width: 80,
         height: 25,
         pagewidth: 80,
@@ -261,7 +261,7 @@ pub static mut aa_text_format: aa_format = {
 };
 
 pub static mut aa_more_format: aa_format = {
-    let mut init = aa_format {
+    let init = aa_format {
         width: 80,
         height: 25,
         pagewidth: 80,
@@ -302,7 +302,7 @@ pub static mut aa_more_format: aa_format = {
 
 pub static mut aa_hp_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 130 * 2,
             height: 64 * 2 - 1,
             pagewidth: 130,
@@ -345,7 +345,7 @@ pub static mut aa_hp_format: aa_format = unsafe {
 
 pub static mut aa_hp2_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 80 * 2,
             height: 64 - 1,
             pagewidth: 80,
@@ -387,7 +387,7 @@ pub static mut aa_hp2_format: aa_format = unsafe {
 
 pub static mut aa_irc_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 70,
             height: 25,
             pagewidth: 70,
@@ -429,7 +429,7 @@ pub static mut aa_irc_format: aa_format = unsafe {
 
 pub static mut aa_zephyr_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 70,
             height: 25,
             pagewidth: 70,
@@ -472,7 +472,7 @@ pub static mut aa_zephyr_format: aa_format = unsafe {
 
 pub static mut aa_roff_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 70,
             height: 25,
             pagewidth: 70,
@@ -514,7 +514,7 @@ pub static mut aa_roff_format: aa_format = unsafe {
 
 pub static mut aa_html_alt_format: aa_format = unsafe {
     {
-        let mut init = aa_format {
+        let init = aa_format {
             width: 79,
             height: 25,
             pagewidth: 79,
@@ -573,7 +573,7 @@ pub static mut aa_formats: [*const aa_format; 12] = unsafe {
 
 pub static mut save_d: aa_driver = unsafe {
     {
-        let mut init = aa_driver {
+        let init = aa_driver {
             shortname: b"save\0" as *const u8 as *const std::ffi::c_char,
             name: b"Special driver for saving to files\0" as *const u8 as *const std::ffi::c_char,
             init: Some(save_init),
@@ -590,8 +590,8 @@ pub static mut save_d: aa_driver = unsafe {
 };
 unsafe extern "C" fn build_conversions(
     mut in_0: *const *const std::ffi::c_char,
-    mut conv: *mut *const std::ffi::c_char,
-) -> *mut *const std::ffi::c_char {
+    conv: *mut *const std::ffi::c_char,
+) -> *mut *const std::ffi::c_char { unsafe {
     let mut c_0: std::ffi::c_uchar = 0;
     memset(
         conv as *mut std::ffi::c_void,
@@ -611,14 +611,14 @@ unsafe extern "C" fn build_conversions(
         }
     }
     return conv;
-}
+}}
 unsafe fn save_init(
-    mut p: *const aa_hardware_params,
-    mut none: *const std::ffi::c_void,
-    mut dest: *mut aa_hardware_params,
-    mut data: *mut *mut std::ffi::c_void,
-) -> i64 {
-    let mut d: *const aa_savedata = none as *const aa_savedata;
+    p: *const aa_hardware_params,
+    none: *const std::ffi::c_void,
+    dest: *mut aa_hardware_params,
+    data: *mut *mut std::ffi::c_void,
+) -> i64 { unsafe {
+    let d: *const aa_savedata = none as *const aa_savedata;
     static mut def: aa_hardware_params = aa_hardware_params {
         font: 0 as *const aa_font,
         supported: 0,
@@ -649,14 +649,14 @@ unsafe fn save_init(
     (*dest).height = (*(*d).format).height;
     (*dest).supported = (*(*d).format).supported;
     return 1;
-}
-unsafe fn save_uninit(mut c_0: *mut aa_context) {}
-unsafe fn save_getsize(mut c_0: *mut aa_context, mut width: &mut i64, mut height: &mut i64) {}
-unsafe fn save_gotoxy(mut c_0: *mut aa_context, mut x: i64, mut y: i64) {}
+}}
+unsafe fn save_uninit(c_0: *mut aa_context) {}
+unsafe fn save_getsize(c_0: *mut aa_context, width: &mut i64, height: &mut i64) {}
+unsafe fn save_gotoxy(c_0: *mut aa_context, x: i64, y: i64) {}
 static mut lastattr: std::ffi::c_int = 0;
 static mut f: *mut FILE = 0 as *const FILE as *mut FILE;
 static mut c: *mut aa_context = 0 as *const aa_context as *mut aa_context;
-unsafe fn stop_tag() {
+unsafe fn stop_tag() { unsafe {
     if lastattr != -(1 as std::ffi::c_int) {
         fputs(
             (*(*((*c).driverdata as *mut aa_savedata)).format).ends[lastattr as usize],
@@ -664,8 +664,8 @@ unsafe fn stop_tag() {
         );
     }
     lastattr = -(1 as std::ffi::c_int);
-}
-unsafe fn start_tag(mut attr: std::ffi::c_int) {
+}}
+unsafe fn start_tag(mut attr: std::ffi::c_int) { unsafe {
     if attr > 5 as std::ffi::c_int {
         attr = 5 as std::ffi::c_int;
     }
@@ -674,12 +674,12 @@ unsafe fn start_tag(mut attr: std::ffi::c_int) {
         (*(*((*c).driverdata as *mut aa_savedata)).format).begin[lastattr as usize],
         f,
     );
-}
+}}
 unsafe fn encodechar(
     mut attr: std::ffi::c_uchar,
-    mut ch: std::ffi::c_uchar,
-    mut conversions: *mut *const std::ffi::c_char,
-) {
+    ch: std::ffi::c_uchar,
+    conversions: *mut *const std::ffi::c_char,
+) { unsafe {
     let mut chr: [std::ffi::c_char; 2] = [0; 2];
     if (*(*((*c).driverdata as *mut aa_savedata)).format).flags & 8 != 0
         && ch as std::ffi::c_int == ' ' as i32
@@ -712,14 +712,14 @@ unsafe fn encodechar(
             *conversions.offset(ch as isize),
         );
     };
-}
+}}
 unsafe fn savearea(
-    mut x1: i64,
-    mut y1: i64,
-    mut x2: i64,
-    mut y2: i64,
-    mut conversions: *mut *const std::ffi::c_char,
-) {
+    x1: i64,
+    y1: i64,
+    x2: i64,
+    y2: i64,
+    conversions: *mut *const std::ffi::c_char,
+) { unsafe {
     let mut x = 0;
     let mut y = 0;
     fputs((*(*((*c).driverdata as *mut aa_savedata)).format).head, f);
@@ -735,7 +735,7 @@ unsafe fn savearea(
                     conversions,
                 );
             } else {
-                let mut pos = x + y * (*c).params.width;
+                let pos = x + y * (*c).params.width;
                 encodechar(
                     *((*c).attrbuffer).offset(pos as isize),
                     *((*c).textbuffer).offset(pos as isize),
@@ -755,8 +755,8 @@ unsafe fn savearea(
     }
     fputs((*(*((*c).driverdata as *mut aa_savedata)).format).end, f);
     fflush(f);
-}
-unsafe fn save_flush(mut c1: *mut aa_context) {
+}}
+unsafe fn save_flush(c1: *mut aa_context) { unsafe {
     let mut fname: [std::ffi::c_char; 4096] = [0; 4096];
     let mut conversions: [*const std::ffi::c_char; 256] = [0 as *const std::ffi::c_char; 256];
     c = c1;
@@ -765,10 +765,10 @@ unsafe fn save_flush(mut c1: *mut aa_context) {
         conversions.as_mut_ptr(),
     );
     if (*(*((*c).driverdata as *mut aa_savedata)).format).flags & 1 != 0 {
-        let mut xpages =
+        let xpages =
             ((*c1).params.width + (*(*((*c).driverdata as *mut aa_savedata)).format).pagewidth - 1)
                 / (*(*((*c).driverdata as *mut aa_savedata)).format).pagewidth;
-        let mut ypages = ((*c1).params.height
+        let ypages = ((*c1).params.height
             + (*(*((*c).driverdata as *mut aa_savedata)).format).pageheight
             - 1)
             / (*(*((*c).driverdata as *mut aa_savedata)).format).pageheight;
@@ -846,18 +846,18 @@ unsafe fn save_flush(mut c1: *mut aa_context) {
             fclose(f);
         }
     };
-}
+}}
 unsafe fn generate_filename(
-    mut template: *const std::ffi::c_char,
-    mut result: *mut std::ffi::c_char,
-    mut x: i64,
-    mut y: i64,
-    mut pages: i64,
-    mut extension: *const std::ffi::c_char,
-) -> *mut std::ffi::c_char {
+    template: *const std::ffi::c_char,
+    result: *mut std::ffi::c_char,
+    x: i64,
+    y: i64,
+    pages: i64,
+    extension: *const std::ffi::c_char,
+) -> *mut std::ffi::c_char { unsafe {
     let mut a: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
     let mut b: *const std::ffi::c_char = 0 as *const std::ffi::c_char;
-    let mut end: *mut std::ffi::c_char = result.offset(4090 as std::ffi::c_int as isize);
+    let end: *mut std::ffi::c_char = result.offset(4090 as std::ffi::c_int as isize);
     b = template.offset(-1);
     a = result.offset(-1);
     loop {
@@ -993,4 +993,4 @@ unsafe fn generate_filename(
     }
     *a = 0 as std::ffi::c_char;
     return result;
-}
+}}

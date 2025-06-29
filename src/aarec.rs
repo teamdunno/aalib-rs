@@ -16,9 +16,9 @@ pub static mut aa_mouserecommended: *mut aa_linkedlist =
 pub static mut aa_displayrecommended: *mut aa_linkedlist =
     0 as *const aa_linkedlist as *mut aa_linkedlist;
 unsafe fn aa_find(
-    mut l: *mut aa_linkedlist,
-    mut text: *const std::ffi::c_char,
-) -> *mut aa_linkedlist {
+    l: *mut aa_linkedlist,
+    text: *const std::ffi::c_char,
+) -> *mut aa_linkedlist { unsafe {
     let mut m: *mut aa_linkedlist = l;
     if l.is_null() {
         return 0 as *mut aa_linkedlist;
@@ -33,14 +33,14 @@ unsafe fn aa_find(
         }
     }
     return 0 as *mut aa_linkedlist;
-}
+}}
 
-pub fn aa_recommendhi(mut l: *mut *mut aa_linkedlist, mut name: *const std::ffi::c_char) {
+pub fn aa_recommendhi(l: *mut *mut aa_linkedlist, name: *const std::ffi::c_char) {
     unsafe {
-        let mut m: *mut aa_linkedlist =
+        let m: *mut aa_linkedlist =
             malloc(::core::mem::size_of::<aa_linkedlist>() as std::ffi::c_ulong)
                 as *mut aa_linkedlist;
-        let mut o: *mut aa_linkedlist = aa_find(*l, name);
+        let o: *mut aa_linkedlist = aa_find(*l, name);
         if !o.is_null() {
             (*(*o).next).previous = (*o).previous;
             (*(*o).previous).next = (*o).next;
@@ -68,11 +68,11 @@ pub fn aa_recommendhi(mut l: *mut *mut aa_linkedlist, mut name: *const std::ffi:
     }
 }
 
-pub fn aa_recommendlow(mut l: *mut *mut aa_linkedlist, mut name: *const std::ffi::c_char) {
+pub fn aa_recommendlow(l: *mut *mut aa_linkedlist, name: *const std::ffi::c_char) {
     unsafe {
-        let mut o: *mut aa_linkedlist = aa_find(*l, name);
+        let o: *mut aa_linkedlist = aa_find(*l, name);
         if o.is_null() {
-            let mut m: *mut aa_linkedlist =
+            let m: *mut aa_linkedlist =
                 malloc(::core::mem::size_of::<aa_linkedlist>() as std::ffi::c_ulong)
                     as *mut aa_linkedlist;
             (*m).text = strdup(name);
@@ -90,10 +90,10 @@ pub fn aa_recommendlow(mut l: *mut *mut aa_linkedlist, mut name: *const std::ffi
     }
 }
 
-pub fn aa_getfirst(mut l: *mut *mut aa_linkedlist) -> *mut std::ffi::c_char {
+pub fn aa_getfirst(l: *mut *mut aa_linkedlist) -> *mut std::ffi::c_char {
     unsafe {
         let mut c: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
-        let mut m: *mut aa_linkedlist = *l;
+        let m: *mut aa_linkedlist = *l;
         if !(*l).is_null() {
             (*(*m).next).previous = (*m).previous;
             (*(*m).previous).next = (*m).next;

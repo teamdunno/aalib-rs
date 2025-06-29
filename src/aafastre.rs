@@ -1,12 +1,12 @@
 use super::aamktabl::aa_mktable;
 use super::aastructs::*;
 
-pub fn aa_fastrender(mut c: *mut aa_context, mut x1: i64, mut y1: i64, mut x2: i64, mut y2: i64) {
+pub fn aa_fastrender(c: *mut aa_context, mut x1: i64, mut y1: i64, mut x2: i64, mut y2: i64) {
     unsafe {
         let mut x = 0;
         let mut y = 0;
         let mut val = 0;
-        let mut wi = (*c).imgwidth;
+        let wi = (*c).imgwidth;
         let mut pos = 0;
         let mut pos1 = 0;
         if x2 < 0 || y2 < 0 || x1 > (*c).params.width || y1 > (*c).params.height {

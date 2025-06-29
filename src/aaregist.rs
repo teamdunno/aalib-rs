@@ -23,7 +23,7 @@ pub static mut aa_drivers: [*const aa_driver; 6] = unsafe {
     ]
 };
 
-pub fn aa_autoinit(mut params: *const aa_hardware_params) -> *mut aa_context {
+pub fn aa_autoinit(params: *const aa_hardware_params) -> *mut aa_context {
     unsafe {
         let mut context: *mut aa_context = 0 as *mut aa_context;
         let mut i = 0;

@@ -2309,7 +2309,7 @@ pub static mut font9data: [std::ffi::c_uchar; 2304] = [
 
 pub static mut aa_font9: aa_font = unsafe {
     {
-        let mut init = aa_font {
+        let init = aa_font {
             data: font9data.as_ptr(),
             height: 9,
             name: b"Standard vga 8x9 font\0" as *const u8 as *const std::ffi::c_char,

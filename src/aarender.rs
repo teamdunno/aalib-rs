@@ -15,7 +15,7 @@ pub const AA_NONE: aa_dithering_mode = 0;
 pub type aa_palette = [std::ffi::c_int; 256];
 
 pub static mut aa_defrenderparams: aa_renderparams = {
-    let mut init = aa_renderparams {
+    let init = aa_renderparams {
         bright: 0,
         contrast: 0,
         gamma: 1.0,
@@ -35,7 +35,7 @@ pub static mut aa_dithernames: [*const std::ffi::c_char; 4] = [
 
 pub fn aa_getrenderparams() -> *mut aa_renderparams {
     unsafe {
-        let mut p: *mut aa_renderparams = calloc(
+        let p: *mut aa_renderparams = calloc(
             1 as std::ffi::c_int as std::ffi::c_ulong,
             ::core::mem::size_of::<aa_renderparams>() as std::ffi::c_ulong,
         ) as *mut aa_renderparams;
@@ -48,9 +48,9 @@ pub fn aa_getrenderparams() -> *mut aa_renderparams {
 }
 
 pub fn aa_renderpalette(
-    mut c: *mut aa_context,
-    mut palette: *const i64,
-    mut p: *const aa_renderparams,
+    c: *mut aa_context,
+    palette: *const i64,
+    p: *const aa_renderparams,
     mut x1: i64,
     mut y1: i64,
     mut x2: i64,
@@ -61,7 +61,7 @@ pub fn aa_renderpalette(
         let mut x = 0;
         let mut y = 0;
         let mut val = 0;
-        let mut wi = (*c).imgwidth;
+        let wi = (*c).imgwidth;
         let mut pos = 0;
         let mut i = 0;
         let mut pos1 = 0;
@@ -74,7 +74,7 @@ pub fn aa_renderpalette(
         let mut cur: i64 = 0;
         let mut mval = 0;
         let mut gamma = ((*p).gamma as f64 != 1.0f64) as i64;
-        let mut randomval = (*p).randomval;
+        let randomval = (*p).randomval;
         let mut dither = (*p).dither as std::ffi::c_int;
         let mut table: aa_palette = [0; 256];
         if x2 < 0 || y2 < 0 || x1 > (*c).params.width || y1 > (*c).params.height {
@@ -165,12 +165,12 @@ pub fn aa_renderpalette(
                 i3 = table[*((*c).imagebuffer).offset((pos + wi) as isize) as usize] as i64;
                 i4 = table[*((*c).imagebuffer).offset((pos + 1 + wi) as isize) as usize] as i64;
                 if gamma != 0 {
-                    state = ((state * 1103515245 + 12345) & 0xffffffff);
+                    state = (state * 1103515245 + 12345) & 0xffffffff;
                     i = state;
-                    i1 += (i % randomval - gamma);
-                    i2 += ((i >> 8) % randomval - gamma);
-                    i3 += ((i >> 16) % randomval - gamma);
-                    i4 += ((i >> 24) % randomval - gamma);
+                    i1 += i % randomval - gamma;
+                    i2 += (i >> 8) % randomval - gamma;
+                    i3 += (i >> 16) % randomval - gamma;
+                    i4 += (i >> 24) % randomval - gamma;
                     if (i1 | i2 | i3 | i4) & !255 != 0 {
                         if i1 < 0 {
                             i1 = 0;
@@ -323,12 +323,12 @@ pub fn aa_renderpalette(
 }
 
 pub fn aa_render(
-    mut c: *mut aa_context,
-    mut p: *const aa_renderparams,
-    mut x1: i64,
-    mut y1: i64,
-    mut x2: i64,
-    mut y2: i64,
+    c: *mut aa_context,
+    p: *const aa_renderparams,
+    x1: i64,
+    y1: i64,
+    x2: i64,
+    y2: i64,
 ) {
     unsafe {
         let mut i: std::ffi::c_int = 0;

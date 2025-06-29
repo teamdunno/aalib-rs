@@ -2053,7 +2053,7 @@ pub static mut fontlinedata: [std::ffi::c_uchar; 2048] = [
 
 pub static mut aa_fontline: aa_font = unsafe {
     {
-        let mut init = aa_font {
+        let init = aa_font {
             data: fontlinedata.as_ptr(),
             height: 8,
             name: b"line Font 8x8\0" as *const u8 as *const std::ffi::c_char,

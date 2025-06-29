@@ -9,11 +9,11 @@ pub const AA_DIM: aa_attribute = 1;
 pub const AA_NORMAL: aa_attribute = 0;
 
 pub fn aa_puts(
-    mut c: *mut aa_context,
-    mut x: i64,
-    mut y: i64,
-    mut attr: aa_attribute,
-    mut s: *const std::ffi::c_char,
+    c: *mut aa_context,
+    x: i64,
+    y: i64,
+    attr: aa_attribute,
+    s: *const std::ffi::c_char,
 ) {
     unsafe {
         let mut s1: [std::ffi::c_char; 10000] = [0; 10000];
@@ -49,15 +49,15 @@ pub fn aa_puts(
 }
 
 pub fn aa_resizehandler(
-    mut c: *mut aa_context,
-    mut handler: Option<unsafe fn(*mut aa_context) -> ()>,
+    c: *mut aa_context,
+    handler: Option<unsafe fn(*mut aa_context) -> ()>,
 ) {
     unsafe {
         (*c).resizehandler = handler;
     }
 }
 
-pub fn aa_hidecursor(mut c: *mut aa_context) {
+pub fn aa_hidecursor(c: *mut aa_context) {
     unsafe {
         (*c).cursorstate -= 1;
         (*c).cursorstate;
@@ -67,7 +67,7 @@ pub fn aa_hidecursor(mut c: *mut aa_context) {
     }
 }
 
-pub fn aa_showcursor(mut c: *mut aa_context) {
+pub fn aa_showcursor(c: *mut aa_context) {
     unsafe {
         (*c).cursorstate += 1;
         (*c).cursorstate;
@@ -78,7 +78,7 @@ pub fn aa_showcursor(mut c: *mut aa_context) {
     }
 }
 
-pub fn aa_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
+pub fn aa_gotoxy(c: *mut aa_context, mut x: i64, mut y: i64) {
     unsafe {
         if (*c).cursorstate >= 0 {
             if x < 0 {

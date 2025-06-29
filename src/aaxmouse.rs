@@ -124,8 +124,8 @@ pub struct xdriverdata {
     pub pixelheight: std::ffi::c_int,
     pub inverted: std::ffi::c_int,
 }
-unsafe fn X_init(mut c: *mut aa_context, mut mode: i64) -> i64 {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+unsafe fn X_init(c: *mut aa_context, mode: i64) -> i64 { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if (*c).driver != &X11_d as *const aa_driver {
         return 0;
     }
@@ -138,21 +138,21 @@ unsafe fn X_init(mut c: *mut aa_context, mut mode: i64) -> i64 {
         });
     XSelectInput((*d).dp, (*d).wi, (*d).attr.event_mask);
     return 1;
-}
-unsafe fn X_uninit(mut c: *mut aa_context) {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+}}
+unsafe fn X_uninit(c: *mut aa_context) { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     (*d).attr.event_mask &= !((1 as std::ffi::c_long) << 2 as std::ffi::c_int
         | (1 as std::ffi::c_long) << 3 as std::ffi::c_int
         | (1 as std::ffi::c_long) << 6 as std::ffi::c_int
         | (1 as std::ffi::c_long) << 13 as std::ffi::c_int);
     XSelectInput((*d).dp, (*d).wi, (*d).attr.event_mask);
-}
+}}
 
 pub static mut __X_mousex: std::ffi::c_int = 0;
 pub static mut __X_mousey: std::ffi::c_int = 0;
 pub static mut __X_buttons: std::ffi::c_int = 0;
-unsafe fn X_getmouse(mut c: *mut aa_context, mut x: *mut i64, mut y: *mut i64, mut b: *mut i64) {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+unsafe fn X_getmouse(c: *mut aa_context, x: *mut i64, y: *mut i64, b: *mut i64) { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     *x = (__X_mousex / (*d).fontwidth).try_into().unwrap();
     *y = (__X_mousey / (*d).fontheight).try_into().unwrap();
     *b = 0;
@@ -165,11 +165,11 @@ unsafe fn X_getmouse(mut c: *mut aa_context, mut x: *mut i64, mut y: *mut i64, m
     if __X_buttons & (1 as std::ffi::c_int) << 10 as std::ffi::c_int != 0 {
         *b |= 4;
     }
-}
+}}
 
 pub static mut mouse_X11_d: aa_mousedriver = unsafe {
     {
-        let mut init = aa_mousedriver {
+        let init = aa_mousedriver {
             shortname: b"X11\0" as *const u8 as *const std::ffi::c_char,
             name: b"X11 mouse driver 1.0\0" as *const u8 as *const std::ffi::c_char,
             flags: 7,

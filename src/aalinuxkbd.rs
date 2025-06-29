@@ -1,5 +1,5 @@
 use super::aagpm::{
-    __curses_usegpm, __gpm_user_handler, Gpm_Connect, Gpm_Etype, Gpm_Event, Gpm_Handler, Gpm_Margin,
+    __curses_usegpm, __gpm_user_handler, Gpm_Etype, Gpm_Event, Gpm_Margin,
 };
 use super::aarec::{aa_mouserecommended, aa_recommendlow};
 use super::aastructs::*;
@@ -323,7 +323,7 @@ static mut vtswitch_allowed: std::ffi::c_int = 0;
 static mut key_down: [std::ffi::c_char; 128] = [0; 128];
 static mut closed: std::ffi::c_int = 1 as std::ffi::c_int;
 static mut mypid: std::ffi::c_int = 0;
-unsafe fn get_keyb_map() -> std::ffi::c_int {
+unsafe fn get_keyb_map() -> std::ffi::c_int { unsafe {
     static mut keyb_ent: kbentry = kbentry {
         kb_table: 0,
         kb_index: 0,
@@ -363,11 +363,11 @@ unsafe fn get_keyb_map() -> std::ffi::c_int {
         f;
     }
     return 1 as std::ffi::c_int;
-}
-unsafe extern "C" fn allow_switch(mut on: std::ffi::c_int) {
+}}
+unsafe extern "C" fn allow_switch(on: std::ffi::c_int) { unsafe {
     vtswitch_allowed = on;
-}
-unsafe extern "C" fn raw_mode(mut tty_fd_0: std::ffi::c_int, mut on: std::ffi::c_int) {
+}}
+unsafe extern "C" fn raw_mode(tty_fd_0: std::ffi::c_int, on: std::ffi::c_int) { unsafe {
     ioctl(
         tty_fd_0,
         0x4b45 as std::ffi::c_int as std::ffi::c_ulong,
@@ -377,8 +377,8 @@ unsafe extern "C" fn raw_mode(mut tty_fd_0: std::ffi::c_int, mut on: std::ffi::c
             0x1 as std::ffi::c_int
         },
     );
-}
-unsafe extern "C" fn blank_key_down() {
+}}
+unsafe extern "C" fn blank_key_down() { unsafe {
     let mut f: std::ffi::c_int = 0;
     f = 0 as std::ffi::c_int;
     while f < 256 as std::ffi::c_int {
@@ -386,8 +386,8 @@ unsafe extern "C" fn blank_key_down() {
         f += 1;
         f;
     }
-}
-unsafe extern "C" fn vt_from_here(mut num: std::ffi::c_int) {
+}}
+unsafe extern "C" fn vt_from_here(num: std::ffi::c_int) { unsafe {
     ioctl(
         tty_fd,
         0x5403 as std::ffi::c_int as std::ffi::c_ulong,
@@ -403,8 +403,8 @@ unsafe extern "C" fn vt_from_here(mut num: std::ffi::c_int) {
         10 as std::ffi::c_int,
         Some(vt_from_here as unsafe extern "C" fn(std::ffi::c_int) -> ()),
     );
-}
-unsafe extern "C" fn vt_to_here(mut num: std::ffi::c_int) {
+}}
+unsafe extern "C" fn vt_to_here(num: std::ffi::c_int) { unsafe {
     let mut ios: termios = termios {
         c_iflag: 0,
         c_oflag: 0,
@@ -431,8 +431,8 @@ unsafe extern "C" fn vt_to_here(mut num: std::ffi::c_int) {
         12 as std::ffi::c_int,
         Some(vt_to_here as unsafe extern "C" fn(std::ffi::c_int) -> ()),
     );
-}
-unsafe extern "C" fn rawmode_init() -> std::ffi::c_int {
+}}
+unsafe extern "C" fn rawmode_init() -> std::ffi::c_int { unsafe {
     if closed == 0 {
         return 0 as std::ffi::c_int;
     }
@@ -503,8 +503,8 @@ unsafe extern "C" fn rawmode_init() -> std::ffi::c_int {
     } else {
         return 0 as std::ffi::c_int;
     };
-}
-unsafe extern "C" fn rawmode_exit() {
+}}
+unsafe extern "C" fn rawmode_exit() { unsafe {
     let mut vtm: vt_mode = vt_mode {
         mode: 0,
         waitv: 0,
@@ -539,8 +539,8 @@ unsafe extern "C" fn rawmode_exit() {
     fcntl(tty_fd, 4 as std::ffi::c_int, 0 as std::ffi::c_int);
     tty_fd = -(1 as std::ffi::c_int);
     tcsetattr(tty_fd, 0 as std::ffi::c_int, &mut oldios);
-}
-unsafe extern "C" fn get_scancode() -> std::ffi::c_int {
+}}
+unsafe extern "C" fn get_scancode() -> std::ffi::c_int { unsafe {
     let mut c: std::ffi::c_uchar = 0;
     if read(
         tty_fd,
@@ -551,8 +551,8 @@ unsafe extern "C" fn get_scancode() -> std::ffi::c_int {
         return -(1 as std::ffi::c_int);
     }
     return c as std::ffi::c_int;
-}
-unsafe extern "C" fn scan_keyboard() -> std::ffi::c_int {
+}}
+unsafe extern "C" fn scan_keyboard() -> std::ffi::c_int { unsafe {
     let mut c: std::ffi::c_int = 0;
     let mut key: std::ffi::c_int = 0;
     let mut flag: std::ffi::c_int = 0;
@@ -641,15 +641,15 @@ unsafe extern "C" fn scan_keyboard() -> std::ffi::c_int {
         raise(2 as std::ffi::c_int);
     }
     return key;
-}
-unsafe extern "C" fn keymap_trans(mut sc: std::ffi::c_int) -> std::ffi::c_int {
+}}
+unsafe extern "C" fn keymap_trans(sc: std::ffi::c_int) -> std::ffi::c_int { unsafe {
     if sc < 0 as std::ffi::c_int || sc > 127 as std::ffi::c_int {
         return -(1 as std::ffi::c_int);
     }
     return keymap[(key_down[0x2a as std::ffi::c_int as usize] as std::ffi::c_int != 0
         || key_down[0x36 as std::ffi::c_int as usize] as std::ffi::c_int != 0)
         as std::ffi::c_int as usize][sc as usize];
-}
+}}
 static mut iswaiting: std::ffi::c_int = 0;
 static mut __resized: std::ffi::c_int = 0;
 static mut buf: jmp_buf = [__jmp_buf_tag {
@@ -657,7 +657,7 @@ static mut buf: jmp_buf = [__jmp_buf_tag {
     __mask_was_saved: 0,
     __saved_mask: __sigset_t { __val: [0; 16] },
 }; 1];
-unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
+unsafe extern "C" fn handler(i: std::ffi::c_int) { unsafe {
     __resized = 2 as std::ffi::c_int;
     signal(
         28 as std::ffi::c_int,
@@ -666,7 +666,7 @@ unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
     if iswaiting != 0 {
         longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
     }
-}
+}}
 static mut sig2catch: [std::ffi::c_char; 16] = [
     1 as std::ffi::c_int as std::ffi::c_char,
     2 as std::ffi::c_int as std::ffi::c_char,
@@ -691,7 +691,7 @@ static mut old_signal_handler: [sigaction; 16] = [sigaction {
     sa_flags: 0,
     sa_restorer: None,
 }; 16];
-unsafe extern "C" fn exithandler(mut v: std::ffi::c_int) {
+unsafe extern "C" fn exithandler(v: std::ffi::c_int) { unsafe {
     let mut i: std::ffi::c_int = 0;
     printf(
         b"AAlib: signal %i received\n\0" as *const u8 as *const std::ffi::c_char,
@@ -723,8 +723,8 @@ unsafe extern "C" fn exithandler(mut v: std::ffi::c_int) {
         );
         raise(11 as std::ffi::c_int);
     }
-}
-unsafe fn linux_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
+}}
+unsafe fn linux_init(context: *mut aa_context, mode: i64) -> i64 { unsafe {
     let mut i: std::ffi::c_int = 0;
     let mut siga: sigaction = sigaction {
         __sigaction_handler: C2RustUnnamed_9 { sa_handler: None },
@@ -769,8 +769,8 @@ unsafe fn linux_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
         i;
     }
     return 1;
-}
-unsafe fn linux_uninit(mut c: *mut aa_context) {
+}}
+unsafe fn linux_uninit(c: *mut aa_context) { unsafe {
     signal(
         28 as std::ffi::c_int,
         ::core::mem::transmute::<libc::intptr_t, __sighandler_t>(
@@ -778,8 +778,8 @@ unsafe fn linux_uninit(mut c: *mut aa_context) {
         ),
     );
     rawmode_exit();
-}
-unsafe fn linux_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
+}}
+unsafe fn linux_getchar(c1: *mut aa_context, wait: i64) -> i64 { unsafe {
     static mut e: Gpm_Event = Gpm_Event {
         buttons: 0,
         modifiers: 0,
@@ -947,12 +947,12 @@ unsafe fn linux_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
         }
     }
     return AA_NONE.try_into().unwrap();
-}
+}}
 
 #[unsafe(no_mangle)]
 pub static mut kbd_linux_d: aa_kbddriver = unsafe {
     {
-        let mut init = aa_kbddriver {
+        let init = aa_kbddriver {
             shortname: b"linux\0" as *const u8 as *const std::ffi::c_char,
             name: b"Linux console raw keyboard driver 1.0\0" as *const u8
                 as *const std::ffi::c_char,

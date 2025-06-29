@@ -1061,7 +1061,7 @@ pub static mut fontgldata: [std::ffi::c_uchar; 1056] = [
 
 pub static mut aa_fontgl: aa_font = unsafe {
     {
-        let mut init = aa_font {
+        let init = aa_font {
             data: fontgldata.as_ptr(),
             height: 8,
             name: b"Font 8x8 from vgagl\0" as *const u8 as *const std::ffi::c_char,

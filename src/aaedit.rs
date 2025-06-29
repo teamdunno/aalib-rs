@@ -35,7 +35,7 @@ pub const AA_BOLDFONT: aa_attribute = 3;
 pub const AA_BOLD: aa_attribute = 2;
 pub const AA_DIM: aa_attribute = 1;
 pub const AA_NORMAL: aa_attribute = 0;
-fn aa_editdisplay(mut e: *mut aa_edit) {
+fn aa_editdisplay(e: *mut aa_edit) {
     unsafe {
         let mut s: [std::ffi::c_char; 1000] = [0; 1000];
         let mut i: std::ffi::c_int = 0;
@@ -78,12 +78,12 @@ fn aa_editdisplay(mut e: *mut aa_edit) {
 }
 
 pub fn aa_createedit(
-    mut c: *mut aa_context,
-    mut x: &mut i32,
-    mut y: &mut i32,
-    mut size: &mut i32,
-    mut s: *mut std::ffi::c_char,
-    mut maxsize: &mut i32,
+    c: *mut aa_context,
+    x: &mut i32,
+    y: &mut i32,
+    size: &mut i32,
+    s: *mut std::ffi::c_char,
+    maxsize: &mut i32,
 ) -> *mut aa_edit {
     unsafe {
         let mut e: *mut aa_edit = 0 as *mut aa_edit;
@@ -106,7 +106,7 @@ pub fn aa_createedit(
         if e.is_null() {
             return 0 as *mut aa_edit;
         }
-        (*e).maxsize = (*maxsize as i64);
+        (*e).maxsize = *maxsize as i64;
         (*e).data = s;
         (*e).cursor = strlen(s) as i64;
         (*e).clearafterpress = 1;
@@ -119,10 +119,10 @@ pub fn aa_createedit(
         return e;
     }
 }
-fn aa_insert(mut e: *mut aa_edit, mut ch: std::ffi::c_char) {
+fn aa_insert(e: *mut aa_edit, ch: std::ffi::c_char) {
     unsafe {
         let mut i: i64 = 0;
-        let mut s: i64 = strlen((*e).data) as i64;
+        let s: i64 = strlen((*e).data) as i64;
         if s == (*e).maxsize - 1 {
             return;
         }
@@ -138,10 +138,10 @@ fn aa_insert(mut e: *mut aa_edit, mut ch: std::ffi::c_char) {
         (*e).cursor;
     }
 }
-fn aa_delete(mut e: *mut aa_edit) {
+fn aa_delete(e: *mut aa_edit) {
     unsafe {
         let mut i = 0;
-        let mut s = strlen((*e).data) as i64;
+        let s = strlen((*e).data) as i64;
         if (*e).cursor == 0 {
             return;
         }
@@ -156,7 +156,7 @@ fn aa_delete(mut e: *mut aa_edit) {
     }
 }
 
-pub fn aa_editkey(mut e: *mut aa_edit, mut c: i64) {
+pub fn aa_editkey(e: *mut aa_edit, c: i64) {
     unsafe {
         if c < 127
             && (*(*__ctype_b_loc()).offset(c as isize) as u32 & _ISgraph as u32 != 0
@@ -195,11 +195,11 @@ pub fn aa_editkey(mut e: *mut aa_edit, mut c: i64) {
 }
 
 pub fn aa_edit(
-    mut c: *mut aa_context,
+    c: *mut aa_context,
     mut x: i32,
     mut y: i32,
     mut size: i32,
-    mut s: *mut std::ffi::c_char,
+    s: *mut std::ffi::c_char,
     mut maxsize: i32,
 ) {
     unsafe {

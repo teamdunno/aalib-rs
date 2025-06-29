@@ -15,13 +15,13 @@ static mut CONSTANT: std::ffi::c_double = 0.;
 static mut currfont: *const aa_font = 0 as *const aa_font;
 unsafe fn values(
     mut c: i64,
-    mut v1: &mut i64,
-    mut v2: &mut i64,
-    mut v3: &mut i64,
-    mut v4: &mut i64,
-) {
+    v1: &mut i64,
+    v2: &mut i64,
+    v3: &mut i64,
+    v4: &mut i64,
+) { unsafe {
     let mut i = 0;
-    let mut attr = c / 256;
+    let attr = c / 256;
     let mut font: *const std::ffi::c_uchar = 0 as *const std::ffi::c_uchar;
     font = (*currfont).data;
     font = (*currfont).data;
@@ -132,14 +132,14 @@ unsafe fn values(
         }
         _ => {}
     };
-}
+}}
 
 pub fn __aa_calcparams(
-    mut font: *const aa_font,
-    mut parameters: *mut parameters,
-    mut supported: i64,
-    mut dimmul: f64,
-    mut boldmul: f64,
+    font: *const aa_font,
+    parameters: *mut parameters,
+    supported: i64,
+    dimmul: f64,
+    boldmul: f64,
 ) {
     unsafe {
         let mut i = 0;

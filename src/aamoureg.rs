@@ -19,7 +19,7 @@ pub static mut aa_mousedrivers: [*const aa_mousedriver; 3] = unsafe {
     ]
 };
 
-pub fn aa_autoinitmouse(mut context: *mut aa_context, mut mode: std::ffi::c_int) -> i64 {
+pub fn aa_autoinitmouse(context: *mut aa_context, mode: std::ffi::c_int) -> i64 {
     unsafe {
         let mut i = 0;
         let mut ok = 0;

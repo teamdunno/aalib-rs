@@ -6,7 +6,7 @@ pub const AA_FLOYD_S: aa_dithering_mode = 2;
 pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
 pub const AA_NONE: aa_dithering_mode = 0;
 
-pub fn aa_initkbd(mut c: *mut aa_context, mut d: *const aa_kbddriver, mut mode: i64) -> u32 {
+pub fn aa_initkbd(c: *mut aa_context, d: *const aa_kbddriver, mode: i64) -> u32 {
     unsafe {
         if ((*d).init).expect("non-null function pointer")(c, mode) != 0 {
             (*c).kbddriver = d;
@@ -16,7 +16,7 @@ pub fn aa_initkbd(mut c: *mut aa_context, mut d: *const aa_kbddriver, mut mode: 
     }
 }
 
-pub fn aa_initmouse(mut c: *mut aa_context, mut d: *const aa_mousedriver, mut mode: i64) -> i64 {
+pub fn aa_initmouse(c: *mut aa_context, d: *const aa_mousedriver, mode: i64) -> i64 {
     unsafe {
         if ((*d).init).expect("non-null function pointer")(c, mode) != 0 {
             (*c).mousedriver = d;
@@ -27,7 +27,7 @@ pub fn aa_initmouse(mut c: *mut aa_context, mut d: *const aa_mousedriver, mut mo
     }
 }
 
-pub fn aa_getmouse(mut c: *mut aa_context, mut x: *mut i64, mut y: *mut i64, mut z: *mut i64) {
+pub fn aa_getmouse(c: *mut aa_context, x: *mut i64, y: *mut i64, z: *mut i64) {
     unsafe {
         *x = 0;
         *y = 0;
@@ -38,7 +38,7 @@ pub fn aa_getmouse(mut c: *mut aa_context, mut x: *mut i64, mut y: *mut i64, mut
     }
 }
 
-pub fn aa_getevent(mut c: *mut aa_context, mut wait: i32) -> i64 {
+pub fn aa_getevent(c: *mut aa_context, wait: i32) -> i64 {
     let mut x = 0;
     let mut y = 0;
     let mut b = 0;
@@ -103,7 +103,7 @@ pub fn aa_getevent(mut c: *mut aa_context, mut wait: i32) -> i64 {
     }
 }
 
-pub fn aa_getkey(mut co: *mut aa_context, mut wait: i32) -> i64 {
+pub fn aa_getkey(co: *mut aa_context, wait: i32) -> i64 {
     unsafe {
         let mut c = 0;
         loop {

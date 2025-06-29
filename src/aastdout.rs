@@ -43,13 +43,13 @@ pub struct _IO_FILE {
 pub type _IO_lock_t = ();
 pub type FILE = _IO_FILE;
 unsafe fn stdout_init(
-    mut p: *const aa_hardware_params,
-    mut none: *const std::ffi::c_void,
-    mut dest: *mut aa_hardware_params,
-    mut n: *mut *mut std::ffi::c_void,
-) -> i64 {
+    p: *const aa_hardware_params,
+    none: *const std::ffi::c_void,
+    dest: *mut aa_hardware_params,
+    n: *mut *mut std::ffi::c_void,
+) -> i64 { unsafe {
     static mut def: aa_hardware_params = {
-        let mut init = aa_hardware_params {
+        let init = aa_hardware_params {
             font: 0 as *const aa_font,
             supported: 1 | (128 | 256),
             minwidth: 0,
@@ -69,10 +69,10 @@ unsafe fn stdout_init(
     };
     *dest = def;
     return 1;
-}
+}}
 unsafe fn stdout_uninit(_: *mut aa_context) {}
 unsafe fn stdout_getsize(_: *mut aa_context, _: &mut i64, _: &mut i64) {}
-unsafe fn stdout_flush(mut c: *mut aa_context) {
+unsafe fn stdout_flush(c: *mut aa_context) { unsafe {
     let mut x = 0;
     let mut y = 0;
     y = 0;
@@ -93,13 +93,13 @@ unsafe fn stdout_flush(mut c: *mut aa_context) {
     putc('\u{c}' as i32, stdout);
     putc('\n' as i32, stdout);
     fflush(stdout);
-}
+}}
 unsafe fn stdout_gotoxy(_: *mut aa_context, _: i64, _: i64) {}
 
 #[unsafe(no_mangle)]
 pub static mut stdout_d: aa_driver = unsafe {
     {
-        let mut init = aa_driver {
+        let init = aa_driver {
             shortname: b"stdout\0" as *const u8 as *const std::ffi::c_char,
             name: b"Standard output driver\0" as *const u8 as *const std::ffi::c_char,
             init: Some(stdout_init),
@@ -114,7 +114,7 @@ pub static mut stdout_d: aa_driver = unsafe {
         init
     }
 };
-unsafe fn stderr_flush(mut c: *mut aa_context) {
+unsafe fn stderr_flush(c: *mut aa_context) { unsafe {
     let mut x = 0;
     let mut y = 0;
     y = 0;
@@ -135,12 +135,12 @@ unsafe fn stderr_flush(mut c: *mut aa_context) {
     putc('\u{c}' as i32, stderr);
     putc('\n' as i32, stderr);
     fflush(stderr);
-}
+}}
 
 #[unsafe(no_mangle)]
 pub static mut stderr_d: aa_driver = unsafe {
     {
-        let mut init = aa_driver {
+        let init = aa_driver {
             shortname: b"stderr\0" as *const u8 as *const std::ffi::c_char,
             name: b"Standard error driver\0" as *const u8 as *const std::ffi::c_char,
             init: Some(stdout_init),

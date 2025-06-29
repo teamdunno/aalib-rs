@@ -481,7 +481,7 @@ pub struct xdriverdata {
 #[unsafe(no_mangle)]
 pub static mut X11_d: aa_driver = unsafe {
     {
-        let mut init = aa_driver {
+        let init = aa_driver {
             shortname: b"X11\0" as *const u8 as *const std::ffi::c_char,
             name: b"X11 driver 1.1\0" as *const u8 as *const std::ffi::c_char,
             init: Some(X_init),
@@ -498,11 +498,11 @@ pub static mut X11_d: aa_driver = unsafe {
 };
 static mut font_error: std::ffi::c_int = 0;
 unsafe extern "C" fn mygetpixel(
-    mut image: *mut XImage,
-    mut pos: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-) -> std::ffi::c_int {
-    let mut width: std::ffi::c_int = (*image).width;
+    image: *mut XImage,
+    pos: std::ffi::c_int,
+    y: std::ffi::c_int,
+) -> std::ffi::c_int { unsafe {
+    let width: std::ffi::c_int = (*image).width;
     let mut i: std::ffi::c_int = 0;
     let mut sum: std::ffi::c_int = font_error;
     let mut start: std::ffi::c_int = (pos * width + 4 as std::ffi::c_int) / 8 as std::ffi::c_int;
@@ -532,8 +532,8 @@ unsafe extern "C" fn mygetpixel(
         font_error = -(end - start - sum);
     }
     return 1 as std::ffi::c_int;
-}
-unsafe extern "C" fn X_AllocColors(mut d: *mut xdriverdata) {
+}}
+unsafe extern "C" fn X_AllocColors(d: *mut xdriverdata) { unsafe {
     static mut c: XColor = XColor {
         pixel: 0,
         red: 0,
@@ -602,8 +602,8 @@ unsafe extern "C" fn X_AllocColors(mut d: *mut xdriverdata) {
     } else {
         (*d).invertedspecial = c.pixel as std::ffi::c_long;
     };
-}
-unsafe extern "C" fn X_setinversionmode(mut inverted: std::ffi::c_int, mut d: *mut xdriverdata) {
+}}
+unsafe extern "C" fn X_setinversionmode(inverted: std::ffi::c_int, d: *mut xdriverdata) { unsafe {
     (*d).inverted = inverted;
     if !((*d).specialGC).is_null() {
         XFreeGC((*d).dp, (*d).specialGC);
@@ -761,13 +761,13 @@ unsafe extern "C" fn X_setinversionmode(mut inverted: std::ffi::c_int, mut d: *m
     }
     (*d).previoust = 0 as *mut std::ffi::c_uchar;
     (*d).previousa = 0 as *mut std::ffi::c_uchar;
-}
+}}
 unsafe fn X_init(
-    mut p: *const aa_hardware_params,
-    mut none: *const std::ffi::c_void,
-    mut dest: *mut aa_hardware_params,
-    mut driverdata: *mut *mut std::ffi::c_void,
-) -> i64 {
+    p: *const aa_hardware_params,
+    none: *const std::ffi::c_void,
+    dest: *mut aa_hardware_params,
+    driverdata: *mut *mut std::ffi::c_void,
+) -> i64 { unsafe {
     /// we use `fixed` because it's almost always available..
     let mut font: *const std::ffi::c_char = b"fixed\0" as *const u8 as *const std::ffi::c_char;
     static mut registered: std::ffi::c_int = 0;
@@ -779,7 +779,7 @@ unsafe fn X_init(
     };
     static mut def: aa_hardware_params = unsafe {
         {
-            let mut init = aa_hardware_params {
+            let init = aa_hardware_params {
                 font: &aa_fontX13B as *const aa_font,
                 supported: 2 | 16 | 1 | 4 | 8 | (128 | 256),
                 minwidth: 0,
@@ -1024,12 +1024,12 @@ unsafe fn X_init(
         b"X11\0" as *const u8 as *const std::ffi::c_char,
     );
     return 1;
-}
+}}
 
 pub unsafe extern "C" fn __aa_X_getsize(
-    mut c: *mut aa_context,
-    mut d: *mut xdriverdata,
-) -> std::ffi::c_int {
+    c: *mut aa_context,
+    d: *mut xdriverdata,
+) -> std::ffi::c_int { unsafe {
     let mut px: std::ffi::c_uint = 0;
     let mut py: std::ffi::c_uint = 0;
     let mut tmp: std::ffi::c_int = 0;
@@ -1113,9 +1113,9 @@ pub unsafe extern "C" fn __aa_X_getsize(
     }
     XSync((*d).dp, 0 as std::ffi::c_int);
     return tmp;
-}
-unsafe fn X_uninit(mut c: *mut aa_context) {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+}}
+unsafe fn X_uninit(c: *mut aa_context) { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if !((*d).previoust).is_null() {
         free((*d).previoust as *mut std::ffi::c_void);
         free((*d).previousa as *mut std::ffi::c_void);
@@ -1124,16 +1124,16 @@ unsafe fn X_uninit(mut c: *mut aa_context) {
         XFreePixmap((*d).dp, (*d).pi);
     }
     XCloseDisplay((*d).dp);
-}
-unsafe fn X_getsize(mut c: *mut aa_context, mut width1: &mut i64, mut height1: &mut i64) {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+}}
+unsafe fn X_getsize(c: *mut aa_context, width1: &mut i64, height1: &mut i64) { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     __aa_X_getsize(c, d);
     (*d).width = (*d).pixelwidth / (*d).realfontwidth;
     *width1 = (*d).width.try_into().unwrap();
     (*d).height = (*d).pixelheight / (*d).fontheight;
     *height1 = (*d).height.try_into().unwrap();
-}
-unsafe fn X_setattr(mut d: *mut xdriverdata, mut attr: i64) {
+}}
+unsafe fn X_setattr(d: *mut xdriverdata, attr: i64) { unsafe {
     match attr {
         0 | 4 => {
             (*d).currGC = (*d).normalGC;
@@ -1149,7 +1149,7 @@ unsafe fn X_setattr(mut d: *mut xdriverdata, mut attr: i64) {
         }
         _ => {}
     };
-}
+}}
 static mut _texty: *mut XTextItem = 0 as *const XTextItem as *mut XTextItem;
 static mut nitem: *mut [std::ffi::c_int; 5] =
     0 as *const [std::ffi::c_int; 5] as *mut [std::ffi::c_int; 5];
@@ -1159,7 +1159,7 @@ static mut _rectangles: *mut XRectangle = 0 as *const XRectangle as *mut XRectan
 static mut nrectangles: [std::ffi::c_int; 4] = [0; 4];
 static mut drawed: std::ffi::c_int = 0;
 static mut area: std::ffi::c_int = 0;
-unsafe extern "C" fn alloctables(mut d: *mut xdriverdata) {
+unsafe extern "C" fn alloctables(d: *mut xdriverdata) { unsafe {
     _texty = malloc(
         (::core::mem::size_of::<XTextItem>() as std::ffi::c_ulong)
             .wrapping_mul((*d).width as std::ffi::c_ulong)
@@ -1182,21 +1182,21 @@ unsafe extern "C" fn alloctables(mut d: *mut xdriverdata) {
             .wrapping_mul((*d).height as std::ffi::c_ulong)
             .wrapping_mul(4 as std::ffi::c_int as std::ffi::c_ulong),
     ) as *mut XRectangle;
-}
-unsafe extern "C" fn freetables() {
+}}
+unsafe extern "C" fn freetables() { unsafe {
     free(_texty as *mut std::ffi::c_void);
     free(nitem as *mut std::ffi::c_void);
     free(startitem as *mut std::ffi::c_void);
     free(_rectangles as *mut std::ffi::c_void);
-}
+}}
 unsafe extern "C" fn MyDrawString(
-    mut d: *mut xdriverdata,
-    mut attr: std::ffi::c_int,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-    mut c: *mut std::ffi::c_uchar,
-    mut i: std::ffi::c_int,
-) {
+    d: *mut xdriverdata,
+    attr: std::ffi::c_int,
+    x: std::ffi::c_int,
+    y: std::ffi::c_int,
+    c: *mut std::ffi::c_uchar,
+    i: std::ffi::c_int,
+) { unsafe {
     let mut it: *mut XTextItem = 0 as *mut XTextItem;
     let mut rect: *mut XRectangle = 0 as *mut XRectangle;
     let mut n: std::ffi::c_int = 0;
@@ -1296,7 +1296,7 @@ unsafe extern "C" fn MyDrawString(
     nrectangles[3 as std::ffi::c_int as usize] += 1;
     nrectangles[3 as std::ffi::c_int as usize];
     area += i;
-}
+}}
 static mut Black: [std::ffi::c_int; 6] = [
     0 as std::ffi::c_int,
     0 as std::ffi::c_int,
@@ -1305,8 +1305,8 @@ static mut Black: [std::ffi::c_int; 6] = [
     1 as std::ffi::c_int,
     1 as std::ffi::c_int,
 ];
-unsafe fn X_flush(mut c: *mut aa_context) {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+unsafe fn X_flush(c: *mut aa_context) { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     let mut x = 0;
     let mut y = 0;
     let mut attr = 0;
@@ -1595,10 +1595,10 @@ unsafe fn X_flush(mut c: *mut aa_context) {
         XSync((*d).dp, 0 as std::ffi::c_int);
     }
     freetables();
-}
+}}
 
-pub unsafe fn __aa_X_redraw(mut c: *mut aa_context) {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+pub unsafe fn __aa_X_redraw(c: *mut aa_context) { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if (*d).pixmapmode != 0 && !((*d).previoust).is_null() {
         XFlush((*d).dp);
         return;
@@ -1611,11 +1611,11 @@ pub unsafe fn __aa_X_redraw(mut c: *mut aa_context) {
     (*d).previousa = 0 as *mut std::ffi::c_uchar;
     X_flush(c);
     XFlush((*d).dp);
-}
-unsafe fn X_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
-    let mut x = x as std::ffi::c_int;
-    let mut y = y as std::ffi::c_int;
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+}}
+unsafe fn X_gotoxy(c: *mut aa_context, x: i64, y: i64) { unsafe {
+    let x = x as std::ffi::c_int;
+    let y = y as std::ffi::c_int;
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if (*d).Xpos != x || (*d).Ypos != y {
         if !((*d).previoust).is_null() {
             *((*d).previoust).offset(((*d).Ypos * (*d).width + (*d).Xpos) as isize) =
@@ -1625,8 +1625,8 @@ unsafe fn X_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
         (*d).Ypos = y;
         X_flush(c);
     }
-}
-unsafe fn X_cursor(mut c: *mut aa_context, mut mode: i64) {
-    let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
+}}
+unsafe fn X_cursor(c: *mut aa_context, mode: i64) { unsafe {
+    let d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     (*d).cvisible = mode as std::ffi::c_int;
-}
+}}

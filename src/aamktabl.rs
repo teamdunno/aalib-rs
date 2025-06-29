@@ -22,7 +22,7 @@ pub const _ISlower: C2RustUnnamed = 512;
 pub const _ISupper: C2RustUnnamed = 256;
 static mut priority: [i64; 5] = [4, 5, 3, 2, 1];
 
-pub fn aa_mktable(mut c: *mut aa_context) -> *mut u32 {
+pub fn aa_mktable(c: *mut aa_context) -> *mut u32 {
     unsafe {
         let mut i: i64 = 0;
         let mut i1: i64 = 0;
@@ -31,8 +31,8 @@ pub fn aa_mktable(mut c: *mut aa_context) -> *mut u32 {
         let mut i4: i64 = 0;
         let mut sum: i64 = 0;
         let mut pos: i64 = 0;
-        let mut currfont: *const aa_font = (*c).params.font;
-        let mut supported = (*c).params.supported;
+        let currfont: *const aa_font = (*c).params.font;
+        let supported = (*c).params.supported;
         let mut next: *mut u32 = 0 as *mut _;
         let mut first: i64 = -1;
         let mut last: i64 = -1;
@@ -76,7 +76,7 @@ pub fn aa_mktable(mut c: *mut aa_context) -> *mut u32 {
                 || supported & 128 != 0 && i & 0xff != 0)
                 && supported & 1 << (i >> 8) != 0
             {
-                let mut current_block_33: u64;
+                let current_block_33: u64;
                 let mut p1 = 0;
                 let mut p2 = 0;
                 let mut p3 = 0;
@@ -226,7 +226,7 @@ pub fn aa_mktable(mut c: *mut aa_context) -> *mut u32 {
                 let mut m4 = 0;
                 let mut ii: i64 = 0;
                 let mut dm = 0;
-                let mut c_0 = *table.offset(i as isize);
+                let c_0 = *table.offset(i as isize);
                 m1 = i >> 12;
                 m2 = i >> 8 & 15;
                 m3 = i >> 4 & 15;
@@ -287,11 +287,11 @@ pub fn aa_mktable(mut c: *mut aa_context) -> *mut u32 {
                                 ch = *table.offset(index as isize);
                                 if !(ch == c_0 || index == blocked.try_into().unwrap()) {
                                     if ch != 0 {
-                                        let mut ii1 = (i1 << 4) + i1;
-                                        let mut ii2 = (i2 << 4) + i2;
-                                        let mut ii3 = (i3 << 4) + i3;
-                                        let mut ii4 = (i4 << 4) + i4;
-                                        let mut iisum = ii1 + ii2 + ii3 + ii4;
+                                        let ii1 = (i1 << 4) + i1;
+                                        let ii2 = (i2 << 4) + i2;
+                                        let ii3 = (i3 << 4) + i3;
+                                        let ii4 = (i4 << 4) + i4;
+                                        let iisum = ii1 + ii2 + ii3 + ii4;
                                         dist = 2
                                             * ((ii1
                                                 - (*parameters.offset(c_0 as isize)).p

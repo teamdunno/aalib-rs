@@ -262,7 +262,7 @@ pub static mut aa_fonts: [*const aa_font; 247] = unsafe {
     ]
 };
 
-pub fn aa_registerfont(mut f: *const aa_font) -> i64 {
+pub fn aa_registerfont(f: *const aa_font) -> i64 {
     unsafe {
         let mut i = 0;
         while i < 246 && !(aa_fonts[i as usize]).is_null() {

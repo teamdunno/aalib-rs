@@ -67,26 +67,26 @@ pub const AA_FLOYD_S: aa_dithering_mode = 2;
 pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
 pub const AA_NONE: aa_dithering_mode = 0;
 #[inline]
-unsafe extern "C" fn atol(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_long {
+unsafe extern "C" fn atol(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_long { unsafe {
     return strtol(
         __nptr,
         0 as *mut std::ffi::c_void as *mut *mut std::ffi::c_char,
         10 as std::ffi::c_int,
     );
-}
+}}
 #[inline]
-unsafe extern "C" fn atof(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_double {
+unsafe extern "C" fn atof(mut __nptr: *const std::ffi::c_char) -> std::ffi::c_double { unsafe {
     return strtod(
         __nptr,
         0 as *mut std::ffi::c_void as *mut *mut std::ffi::c_char,
     );
-}
+}}
 static mut inparse: std::ffi::c_int = 0;
 unsafe extern "C" fn aa_remove(
-    mut i: std::ffi::c_int,
-    mut argc: *mut std::ffi::c_int,
-    mut argv: *mut *mut std::ffi::c_char,
-) {
+    i: std::ffi::c_int,
+    argc: *mut std::ffi::c_int,
+    argv: *mut *mut std::ffi::c_char,
+) { unsafe {
     let mut y: std::ffi::c_int = 0;
     if i < 0 as std::ffi::c_int || i >= *argc {
         printf(b"AA Internal error #1-please report\n\0" as *const u8 as *const std::ffi::c_char);
@@ -103,7 +103,7 @@ unsafe extern "C" fn aa_remove(
     *fresh1 = 0 as *mut std::ffi::c_char;
     *argc -= 1;
     *argc;
-}
+}}
 
 /// This is a (mostly unmodified) function, because it takes raw C-style argc and argv. Use it like
 /// this:
@@ -113,8 +113,8 @@ unsafe extern "C" fn aa_remove(
 pub fn aa_parseoptions(
     mut p: *mut aa_hardware_params,
     mut r: *mut aa_renderparams,
-    mut argc: *mut std::ffi::c_int,
-    mut argv: *mut *mut std::ffi::c_char,
+    argc: *mut std::ffi::c_int,
+    argv: *mut *mut std::ffi::c_char,
 ) -> std::ffi::c_int {
     unsafe {
         let mut i: std::ffi::c_int = 0;
@@ -643,7 +643,7 @@ pub fn aa_parseoptions(
         return 1 as std::ffi::c_int;
     }
 }
-unsafe extern "C" fn parseenv(mut p: *mut aa_hardware_params, mut r: *mut aa_renderparams) {
+unsafe extern "C" fn parseenv(p: *mut aa_hardware_params, r: *mut aa_renderparams) { unsafe {
     let mut env: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
     let mut argc: std::ffi::c_int = 1 as std::ffi::c_int;
     let mut i: std::ffi::c_int = 0;
@@ -707,4 +707,4 @@ unsafe extern "C" fn parseenv(mut p: *mut aa_hardware_params, mut r: *mut aa_ren
         }
     }
     inparse = 0 as std::ffi::c_int;
-}
+}}

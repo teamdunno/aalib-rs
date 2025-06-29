@@ -44,12 +44,12 @@ pub struct aa_driver {
 }
 
 pub fn aa_printf(
-    mut c: *mut aa_context,
-    mut x: i64,
-    mut y: i64,
-    mut attr: aa_attribute,
-    mut fmt: *const std::ffi::c_char,
-    mut args: String,
+    c: *mut aa_context,
+    x: i64,
+    y: i64,
+    attr: aa_attribute,
+    fmt: *const std::ffi::c_char,
+    args: String,
 ) -> std::ffi::c_int {
     let mut buf = [0 as std::ffi::c_char; 1025];
     let bytes = args.as_bytes();

@@ -21,7 +21,7 @@ pub static mut aa_kbddrivers: [*const aa_kbddriver; 5] = unsafe {
     ]
 };
 
-pub fn aa_autoinitkbd(mut context: *mut aa_context, mut mode: i64) -> i64 {
+pub fn aa_autoinitkbd(context: *mut aa_context, mode: i64) -> i64 {
     unsafe {
         let mut i = 0;
         let mut ok = 0;

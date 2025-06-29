@@ -159,7 +159,7 @@ static mut buf: jmp_buf = [__jmp_buf_tag {
 
 pub static mut __slang_keyboard: std::ffi::c_int = 0;
 static mut uninitslang: std::ffi::c_int = 0;
-unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
+unsafe extern "C" fn handler(i: std::ffi::c_int) { unsafe {
     ::core::ptr::write_volatile(
         &mut __resized_slang as *mut std::ffi::c_int,
         2 as std::ffi::c_int,
@@ -171,8 +171,8 @@ unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
     if iswaiting != 0 {
         longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
     }
-}
-unsafe fn slang_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
+}}
+unsafe fn slang_init(context: *mut aa_context, mode: i64) -> i64 { unsafe {
     if __slang_is_up == 0 {
         fflush(stdout);
         SLtt_get_terminfo();
@@ -199,15 +199,15 @@ unsafe fn slang_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
         Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
     );
     return 1;
-}
-unsafe fn slang_uninit(mut c: *mut aa_context) {
+}}
+unsafe fn slang_uninit(c: *mut aa_context) { unsafe {
     if uninitslang != 0 {
         uninitslang = 0 as std::ffi::c_int;
         __slang_is_up = 0 as std::ffi::c_int;
     }
     SLang_reset_tty();
-}
-unsafe fn slang_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
+}}
+unsafe fn slang_getchar(c1: *mut aa_context, wait: i64) -> i64 { unsafe {
     let mut c: std::ffi::c_int = 0;
     let mut flag: std::ffi::c_int = 0 as std::ffi::c_int;
     static mut ev: Gpm_Event = Gpm_Event {
@@ -443,12 +443,12 @@ unsafe fn slang_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
         _ => {}
     }
     return 400;
-}
+}}
 
 #[unsafe(no_mangle)]
 pub static mut kbd_slang_d: aa_kbddriver = unsafe {
     {
-        let mut init = aa_kbddriver {
+        let init = aa_kbddriver {
             shortname: b"slang\0" as *const u8 as *const std::ffi::c_char,
             name: b"Slang keyboard driver 1.0\0" as *const u8 as *const std::ffi::c_char,
             flags: 0,

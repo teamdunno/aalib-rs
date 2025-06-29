@@ -99,7 +99,7 @@ static mut buf: jmp_buf = [__jmp_buf_tag {
     __mask_was_saved: 0,
     __saved_mask: __sigset_t { __val: [0; 16] },
 }; 1];
-unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
+unsafe extern "C" fn handler(i: std::ffi::c_int) { unsafe {
     __resized = 2 as std::ffi::c_int;
     signal(
         28 as std::ffi::c_int,
@@ -108,8 +108,8 @@ unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
     if iswaiting != 0 {
         longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
     }
-}
-unsafe fn stdin_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
+}}
+unsafe fn stdin_init(context: *mut aa_context, mode: i64) -> i64 { unsafe {
     signal(
         28 as std::ffi::c_int,
         Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
@@ -119,16 +119,16 @@ unsafe fn stdin_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
         b"gpm\0" as *const u8 as *const std::ffi::c_char,
     );
     return 1;
-}
-unsafe fn stdin_uninit(mut c: *mut aa_context) {
+}}
+unsafe fn stdin_uninit(c: *mut aa_context) { unsafe {
     signal(
         28 as std::ffi::c_int,
         ::core::mem::transmute::<libc::intptr_t, __sighandler_t>(
             1 as std::ffi::c_int as libc::intptr_t,
         ),
     );
-}
-unsafe fn stdin_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
+}}
+unsafe fn stdin_getchar(c1: *mut aa_context, wait: i64) -> i64 { unsafe {
     let mut c: std::ffi::c_int = 0;
     let mut flag: std::ffi::c_int = 0;
     let mut tv: timeval = timeval {
@@ -212,12 +212,12 @@ unsafe fn stdin_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
         return AA_NONE.try_into().unwrap();
     }
     return 400;
-}
+}}
 
 #[unsafe(no_mangle)]
 pub static mut kbd_stdin_d: aa_kbddriver = unsafe {
     {
-        let mut init = aa_kbddriver {
+        let init = aa_kbddriver {
             shortname: b"stdin\0" as *const u8 as *const std::ffi::c_char,
             name: b"Standard input keyboard driver 1.0\0" as *const u8 as *const std::ffi::c_char,
             flags: 0,

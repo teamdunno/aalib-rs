@@ -3589,7 +3589,7 @@ static mut font14data: [std::ffi::c_uchar; 3584] = [
 
 pub static mut aa_font14: aa_font = unsafe {
     {
-        let mut init = aa_font {
+        let init = aa_font {
             data: font14data.as_ptr(),
             height: 14,
             name: b"Standard mda/vga 8x14 font\0" as *const u8 as *const std::ffi::c_char,
