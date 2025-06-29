@@ -27,6 +27,7 @@ pub mod aakbdreg;
 pub mod aalib;
 pub mod aalinux;
 pub mod aalinuxkbd;
+pub mod aamasks;
 pub mod aamem;
 pub mod aamktabl;
 pub mod aammheight;
@@ -76,16 +77,18 @@ mod tests {
         aaparse::aa_parseoptions,
         aaputpixel::aa_putpixel,
         aarender::{aa_defrenderparams, aa_getrenderparams, aa_render, aa_renderpalette},
+        aax::{AA_BOLD, AA_DIM},
     };
 
     use super::{
         aaflush::aa_flush,
+        aamasks::{AA_BOLD_MASK, AA_DIM_MASK, AA_NORMAL_MASK},
         aaout::{aa_hidecursor, aa_puts},
         aaregist::aa_autoinit,
         aascrheight::aa_scrheight,
         aascrwidth::aa_scrwidth,
         aastructs::*,
-        aax::{AA_BOLD, AA_DIM, AA_NORMAL, AA_SPECIAL},
+        aax::{AA_NORMAL, AA_SPECIAL},
     };
     use std::{ffi::CString, thread, time::Duration};
 
@@ -98,7 +101,7 @@ mod tests {
 
     fn flashing_text() {
         let mut params: aa_hardware_params = unsafe { std::mem::zeroed() };
-        params.supported = (AA_NORMAL | AA_BOLD | AA_DIM) as i64;
+        params.supported = (AA_NORMAL_MASK | AA_BOLD_MASK | AA_DIM_MASK);
         let context = unsafe { aa_autoinit(&params) };
         let text = CString::new("hello, world :)").unwrap();
         let mut iters = 0;
@@ -108,7 +111,7 @@ mod tests {
                 ((aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i64) / 2)
                     .into(),
                 (aa_scrheight(context) / 2).into(),
-                AA_SPECIAL,
+                AA_DIM,
                 text.as_ptr(),
             );
             aa_flush(context);
@@ -122,7 +125,28 @@ mod tests {
                 text.as_ptr(),
             );
             aa_flush(context);
+            thread::sleep(Duration::from_millis(500));
 
+            aa_puts(
+                context,
+                ((aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i64) / 2)
+                    .into(),
+                (aa_scrheight(context) / 2).into(),
+                AA_SPECIAL,
+                text.as_ptr(),
+            );
+            aa_flush(context);
+            thread::sleep(Duration::from_millis(500));
+
+            aa_puts(
+                context,
+                ((aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i64) / 2)
+                    .into(),
+                (aa_scrheight(context) / 2).into(),
+                AA_BOLD,
+                text.as_ptr(),
+            );
+            aa_flush(context);
             thread::sleep(Duration::from_millis(500));
 
             iters += 1;
@@ -133,7 +157,7 @@ mod tests {
 
     fn fill_pixels() {
         let mut params: aa_hardware_params = unsafe { std::mem::zeroed() };
-        params.supported = (AA_NORMAL | AA_BOLD | AA_DIM) as i64;
+        params.supported = (AA_NORMAL_MASK | AA_BOLD_MASK | AA_DIM_MASK) as i64;
         let context = aa_autoinit(&params);
 
         let mut x = 0;
