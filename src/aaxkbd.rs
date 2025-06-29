@@ -1,7 +1,9 @@
+use super::aarec::aa_mouserecommended;
 use super::aarec::aa_recommendlow;
 use super::aastructs::*;
 use super::aastructs::*;
 use super::aax::{__aa_X_getsize, __aa_X_redraw, xdriverdata};
+use super::aaxmouse::{__X_buttons, __X_mousex, __X_mousey};
 use x11_dl::xlib::{_XDisplay, _XGC};
 
 unsafe extern "C" {
@@ -19,10 +21,6 @@ unsafe extern "C" {
         _: *mut XComposeStatus,
     ) -> std::ffi::c_int;
     static X11_d: aa_driver;
-    static mut aa_mouserecommended: *mut aa_linkedlist;
-    static mut __X_mousex: std::ffi::c_int;
-    static mut __X_mousey: std::ffi::c_int;
-    static mut __X_buttons: std::ffi::c_int;
 }
 pub type XID = std::ffi::c_ulong;
 pub type Atom = std::ffi::c_ulong;
@@ -590,26 +588,22 @@ pub const AA_DITHERTYPES: aa_dithering_mode = 3;
 pub const AA_FLOYD_S: aa_dithering_mode = 2;
 pub const AA_ERRORDISTRIB: aa_dithering_mode = 1;
 pub const AA_NONE: aa_dithering_mode = 0;
-unsafe extern "C" fn X_init(mut c: *mut aa_context, mut mode: std::ffi::c_int) -> std::ffi::c_int {
+unsafe fn X_init(mut c: *mut aa_context, mut mode: i64) -> i64 {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if (*c).driver != &X11_d as *const aa_driver {
-        return 0 as std::ffi::c_int;
+        return 0;
     }
     (*d).attr.event_mask |= (1 as std::ffi::c_long) << 17 as std::ffi::c_int
         | (1 as std::ffi::c_long) << 0 as std::ffi::c_int
-        | (if mode & 1 as std::ffi::c_int != 0 {
-            (1 as std::ffi::c_long) << 1 as std::ffi::c_int
-        } else {
-            0 as std::ffi::c_int as std::ffi::c_long
-        });
+        | (if mode & 1 != 0 { 1 << 1 } else { 0 });
     XSelectInput((*d).dp, (*d).wi, (*d).attr.event_mask);
     aa_recommendlow(
         &mut aa_mouserecommended,
         b"X11\0" as *const u8 as *const std::ffi::c_char,
     );
-    return 1 as std::ffi::c_int;
+    return 1;
 }
-unsafe extern "C" fn X_uninit(mut c: *mut aa_context) {
+unsafe fn X_uninit(mut c: *mut aa_context) {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     (*d).attr.event_mask &= !((1 as std::ffi::c_long) << 0 as std::ffi::c_int
         | (1 as std::ffi::c_long) << 1 as std::ffi::c_int);
@@ -642,15 +636,12 @@ unsafe extern "C" fn decodekey(mut ev: *mut XEvent) -> std::ffi::c_int {
     }
     return name[0 as std::ffi::c_int as usize] as std::ffi::c_int;
 }
-unsafe extern "C" fn X_getchar(
-    mut c: *mut aa_context,
-    mut wait: std::ffi::c_int,
-) -> std::ffi::c_int {
+unsafe fn X_getchar(mut c: *mut aa_context, mut wait: i64) -> i64 {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     loop {
         let mut ev: XEvent = _XEvent { type_0: 0 };
         if wait == 0 && XPending((*d).dp) == 0 {
-            return AA_NONE as std::ffi::c_int;
+            return AA_NONE.try_into().unwrap();
         }
         XNextEvent((*d).dp, &mut ev);
         let mut current_block_15: u64;
@@ -677,12 +668,12 @@ unsafe extern "C" fn X_getchar(
             }
             22 => {
                 if __aa_X_getsize(c, d) != 0 {
-                    return 258 as std::ffi::c_int;
+                    return 258;
                 }
                 current_block_15 = 8831408221741692167;
             }
-            2 => return decodekey(&mut ev),
-            3 => return decodekey(&mut ev) | 65536 as std::ffi::c_int,
+            2 => return decodekey(&mut ev).into(),
+            3 => return decodekey(&mut ev) as i64 | 65536,
             _ => {
                 current_block_15 = 8831408221741692167;
             }
@@ -693,25 +684,22 @@ unsafe extern "C" fn X_getchar(
                 __X_mousex = ev.xbutton.x;
                 __X_mousey = ev.xbutton.y;
                 __X_buttons = ev.xbutton.state as std::ffi::c_int;
-                return 259 as std::ffi::c_int;
+                return 259;
             }
         }
     }
 }
+
+#[unsafe(no_mangle)]
 pub static mut kbd_X11_d: aa_kbddriver = unsafe {
     {
         let mut init = aa_kbddriver {
             shortname: b"X11\0" as *const u8 as *const std::ffi::c_char,
             name: b"X11 keyboard driver 1.0\0" as *const u8 as *const std::ffi::c_char,
-            flags: 1 as std::ffi::c_int,
-            init: Some(
-                X_init as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
-            uninit: Some(X_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getkey: Some(
-                X_getchar
-                    as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
+            flags: 1,
+            init: Some(X_init),
+            uninit: Some(X_uninit),
+            getkey: Some(X_getchar),
         };
         init
     }

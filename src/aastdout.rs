@@ -42,16 +42,16 @@ pub struct _IO_FILE {
 }
 pub type _IO_lock_t = ();
 pub type FILE = _IO_FILE;
-unsafe extern "C" fn stdout_init(
+unsafe fn stdout_init(
     mut p: *const aa_hardware_params,
     mut none: *const std::ffi::c_void,
     mut dest: *mut aa_hardware_params,
     mut n: *mut *mut std::ffi::c_void,
-) -> std::ffi::c_int {
+) -> i64 {
     static mut def: aa_hardware_params = {
         let mut init = aa_hardware_params {
             font: 0 as *const aa_font,
-            supported: 1 as std::ffi::c_int | (128 as std::ffi::c_int | 256 as std::ffi::c_int),
+            supported: 1 | (128 | 256),
             minwidth: 0,
             minheight: 0,
             maxwidth: 0,
@@ -68,21 +68,16 @@ unsafe extern "C" fn stdout_init(
         init
     };
     *dest = def;
-    return 1 as std::ffi::c_int;
+    return 1;
 }
-unsafe extern "C" fn stdout_uninit(mut c: *mut aa_context) {}
-unsafe extern "C" fn stdout_getsize(
-    mut c: *mut aa_context,
-    mut width: *mut std::ffi::c_int,
-    mut height: *mut std::ffi::c_int,
-) {
-}
-unsafe extern "C" fn stdout_flush(mut c: *mut aa_context) {
-    let mut x: std::ffi::c_int = 0;
-    let mut y: std::ffi::c_int = 0;
-    y = 0 as std::ffi::c_int;
+unsafe fn stdout_uninit(_: *mut aa_context) {}
+unsafe fn stdout_getsize(_: *mut aa_context, _: &mut i64, _: &mut i64) {}
+unsafe fn stdout_flush(mut c: *mut aa_context) {
+    let mut x = 0;
+    let mut y = 0;
+    y = 0;
     while y < (*c).params.height {
-        x = 0 as std::ffi::c_int;
+        x = 0;
         while x < (*c).params.width {
             putc(
                 *((*c).textbuffer).offset((x + y * (*c).params.width) as isize) as std::ffi::c_int,
@@ -99,12 +94,7 @@ unsafe extern "C" fn stdout_flush(mut c: *mut aa_context) {
     putc('\n' as i32, stdout);
     fflush(stdout);
 }
-unsafe extern "C" fn stdout_gotoxy(
-    mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-) {
-}
+unsafe fn stdout_gotoxy(_: *mut aa_context, _: i64, _: i64) {}
 
 #[unsafe(no_mangle)]
 pub static mut stdout_d: aa_driver = unsafe {
@@ -112,46 +102,24 @@ pub static mut stdout_d: aa_driver = unsafe {
         let mut init = aa_driver {
             shortname: b"stdout\0" as *const u8 as *const std::ffi::c_char,
             name: b"Standard output driver\0" as *const u8 as *const std::ffi::c_char,
-            init: Some(
-                stdout_init
-                    as unsafe extern "C" fn(
-                        *const aa_hardware_params,
-                        *const std::ffi::c_void,
-                        *mut aa_hardware_params,
-                        *mut *mut std::ffi::c_void,
-                    ) -> std::ffi::c_int,
-            ),
-            uninit: Some(stdout_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getsize: Some(
-                stdout_getsize
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        *mut std::ffi::c_int,
-                        *mut std::ffi::c_int,
-                    ) -> (),
-            ),
+            init: Some(stdout_init),
+            uninit: Some(stdout_uninit),
+            getsize: Some(stdout_getsize),
             setattr: None,
             print: None,
-            gotoxy: Some(
-                stdout_gotoxy
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        std::ffi::c_int,
-                        std::ffi::c_int,
-                    ) -> (),
-            ),
-            flush: Some(stdout_flush as unsafe extern "C" fn(*mut aa_context) -> ()),
+            gotoxy: Some(stdout_gotoxy),
+            flush: Some(stdout_flush),
             cursormode: None,
         };
         init
     }
 };
-unsafe extern "C" fn stderr_flush(mut c: *mut aa_context) {
-    let mut x: std::ffi::c_int = 0;
-    let mut y: std::ffi::c_int = 0;
-    y = 0 as std::ffi::c_int;
+unsafe fn stderr_flush(mut c: *mut aa_context) {
+    let mut x = 0;
+    let mut y = 0;
+    y = 0;
     while y < (*c).params.height {
-        x = 0 as std::ffi::c_int;
+        x = 0;
         while x < (*c).params.width {
             putc(
                 *((*c).textbuffer).offset((x + y * (*c).params.width) as isize) as std::ffi::c_int,
@@ -175,35 +143,13 @@ pub static mut stderr_d: aa_driver = unsafe {
         let mut init = aa_driver {
             shortname: b"stderr\0" as *const u8 as *const std::ffi::c_char,
             name: b"Standard error driver\0" as *const u8 as *const std::ffi::c_char,
-            init: Some(
-                stdout_init
-                    as unsafe extern "C" fn(
-                        *const aa_hardware_params,
-                        *const std::ffi::c_void,
-                        *mut aa_hardware_params,
-                        *mut *mut std::ffi::c_void,
-                    ) -> std::ffi::c_int,
-            ),
-            uninit: Some(stdout_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getsize: Some(
-                stdout_getsize
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        *mut std::ffi::c_int,
-                        *mut std::ffi::c_int,
-                    ) -> (),
-            ),
+            init: Some(stdout_init),
+            uninit: Some(stdout_uninit),
+            getsize: Some(stdout_getsize),
             setattr: None,
             print: None,
-            gotoxy: Some(
-                stdout_gotoxy
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        std::ffi::c_int,
-                        std::ffi::c_int,
-                    ) -> (),
-            ),
-            flush: Some(stderr_flush as unsafe extern "C" fn(*mut aa_context) -> ()),
+            gotoxy: Some(stdout_gotoxy),
+            flush: Some(stderr_flush),
             cursormode: None,
         };
         init

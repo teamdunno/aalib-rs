@@ -1,3 +1,7 @@
+use super::aagpm::{
+    __curses_usegpm, __gpm_user_handler, Gpm_Connect, Gpm_Etype, Gpm_Event, Gpm_Handler, Gpm_Margin,
+};
+use super::aarec::{aa_mouserecommended, aa_recommendlow};
 use super::aastructs::*;
 use ::c2rust_bitfields;
 use ::libc;
@@ -43,11 +47,7 @@ unsafe extern "C" {
     static mut _gpm_arg: *mut std::ffi::c_ushort;
     fn Gpm_GetEvent(_: *mut Gpm_Event) -> std::ffi::c_int;
     static mut gpm_consolefd: std::ffi::c_int;
-    static mut aa_mouserecommended: *mut aa_linkedlist;
-    fn aa_recommendlow(l: *mut *mut aa_linkedlist, name: *const std::ffi::c_char);
     fn atexit(__func: Option<unsafe extern "C" fn() -> ()>) -> std::ffi::c_int;
-    static mut __curses_usegpm: std::ffi::c_int;
-    fn __gpm_user_handler(event: *mut Gpm_Event, data: *mut std::ffi::c_void) -> std::ffi::c_int;
 }
 pub type __uint32_t = std::ffi::c_uint;
 pub type __uid_t = std::ffi::c_uint;
@@ -265,7 +265,6 @@ pub struct __jmp_buf_tag {
     pub __saved_mask: __sigset_t,
 }
 pub type jmp_buf = [__jmp_buf_tag; 1];
-pub type Gpm_Etype = std::ffi::c_uint;
 pub const GPM_LEAVE: Gpm_Etype = 1024;
 pub const GPM_ENTER: Gpm_Etype = 512;
 pub const GPM_HARD: Gpm_Etype = 256;
@@ -277,27 +276,10 @@ pub const GPM_UP: Gpm_Etype = 8;
 pub const GPM_DOWN: Gpm_Etype = 4;
 pub const GPM_DRAG: Gpm_Etype = 2;
 pub const GPM_MOVE: Gpm_Etype = 1;
-pub type Gpm_Margin = std::ffi::c_uint;
 pub const GPM_RGT: Gpm_Margin = 8;
 pub const GPM_LFT: Gpm_Margin = 4;
 pub const GPM_BOT: Gpm_Margin = 2;
 pub const GPM_TOP: Gpm_Margin = 1;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct Gpm_Event {
-    pub buttons: std::ffi::c_uchar,
-    pub modifiers: std::ffi::c_uchar,
-    pub vc: std::ffi::c_ushort,
-    pub dx: std::ffi::c_short,
-    pub dy: std::ffi::c_short,
-    pub x: std::ffi::c_short,
-    pub y: std::ffi::c_short,
-    pub type_0: Gpm_Etype,
-    pub clicks: std::ffi::c_int,
-    pub margin: Gpm_Margin,
-    pub wdx: std::ffi::c_short,
-    pub wdy: std::ffi::c_short,
-}
 pub type aa_dithering_mode = std::ffi::c_uint;
 pub const AA_DITHERTYPES: aa_dithering_mode = 3;
 pub const AA_FLOYD_S: aa_dithering_mode = 2;
@@ -341,26 +323,26 @@ static mut vtswitch_allowed: std::ffi::c_int = 0;
 static mut key_down: [std::ffi::c_char; 128] = [0; 128];
 static mut closed: std::ffi::c_int = 1 as std::ffi::c_int;
 static mut mypid: std::ffi::c_int = 0;
-unsafe extern "C" fn get_keyb_map() -> std::ffi::c_int {
+unsafe fn get_keyb_map() -> std::ffi::c_int {
     static mut keyb_ent: kbentry = kbentry {
         kb_table: 0,
         kb_index: 0,
         kb_value: 0,
     };
-    let mut f: std::ffi::c_int = 0;
-    keyb_ent.kb_table = 0 as std::ffi::c_int as std::ffi::c_uchar;
-    f = 0 as std::ffi::c_int;
-    while f < 256 as std::ffi::c_int {
+    let mut f = 0;
+    keyb_ent.kb_table = 0 as std::ffi::c_uchar;
+    f = 0;
+    while f < 256 {
         keyb_ent.kb_index = f as std::ffi::c_uchar;
         if ioctl(
             tty_fd,
-            0x4b46 as std::ffi::c_int as std::ffi::c_ulong,
+            0x4b46 as std::ffi::c_ulong,
             &mut keyb_ent as *mut kbentry as std::ffi::c_uint,
         ) != 0
         {
-            return 0 as std::ffi::c_int;
+            return 0;
         }
-        keymap[0 as std::ffi::c_int as usize][f as usize] = keyb_ent.kb_value as std::ffi::c_int;
+        keymap[0][f as usize] = keyb_ent.kb_value as i32;
         f += 1;
         f;
     }
@@ -742,10 +724,7 @@ unsafe extern "C" fn exithandler(mut v: std::ffi::c_int) {
         raise(11 as std::ffi::c_int);
     }
 }
-unsafe extern "C" fn linux_init(
-    mut context: *mut aa_context,
-    mut mode: std::ffi::c_int,
-) -> std::ffi::c_int {
+unsafe fn linux_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
     let mut i: std::ffi::c_int = 0;
     let mut siga: sigaction = sigaction {
         __sigaction_handler: C2RustUnnamed_9 { sa_handler: None },
@@ -753,11 +732,11 @@ unsafe extern "C" fn linux_init(
         sa_flags: 0,
         sa_restorer: None,
     };
-    if mode & 1 as std::ffi::c_int == 0 {
-        return 0 as std::ffi::c_int;
+    if mode & 1 == 0 {
+        return 0;
     }
     if rawmode_init() == 0 {
-        return 0 as std::ffi::c_int;
+        return 0;
     }
     signal(
         28 as std::ffi::c_int,
@@ -789,9 +768,9 @@ unsafe extern "C" fn linux_init(
         i += 1;
         i;
     }
-    return 1 as std::ffi::c_int;
+    return 1;
 }
-unsafe extern "C" fn linux_uninit(mut c: *mut aa_context) {
+unsafe fn linux_uninit(mut c: *mut aa_context) {
     signal(
         28 as std::ffi::c_int,
         ::core::mem::transmute::<libc::intptr_t, __sighandler_t>(
@@ -800,10 +779,7 @@ unsafe extern "C" fn linux_uninit(mut c: *mut aa_context) {
     );
     rawmode_exit();
 }
-unsafe extern "C" fn linux_getchar(
-    mut c1: *mut aa_context,
-    mut wait: std::ffi::c_int,
-) -> std::ffi::c_int {
+unsafe fn linux_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
     static mut e: Gpm_Event = Gpm_Event {
         buttons: 0,
         modifiers: 0,
@@ -914,8 +890,9 @@ unsafe extern "C" fn linux_getchar(
                 != 0 as std::ffi::c_int as __fd_mask
         {
             if Gpm_GetEvent(&mut e) == 1 as std::ffi::c_int {
-                __gpm_user_handler(&mut e, 0 as *mut std::ffi::c_void);
-                return 259 as std::ffi::c_int;
+                let e_ptr: *mut Gpm_Event = &mut e;
+                __gpm_user_handler(e_ptr, 0 as *mut std::ffi::c_void);
+                return 259;
             }
         }
         c = scan_keyboard();
@@ -961,7 +938,7 @@ unsafe extern "C" fn linux_getchar(
             if key_down[c as usize] == 0 {
                 key |= 65536 as std::ffi::c_int;
             }
-            return key;
+            return key.try_into().unwrap();
         } else {
             key = AA_NONE as std::ffi::c_int;
         }
@@ -969,25 +946,20 @@ unsafe extern "C" fn linux_getchar(
             break;
         }
     }
-    return AA_NONE as std::ffi::c_int;
+    return AA_NONE.try_into().unwrap();
 }
 
+#[unsafe(no_mangle)]
 pub static mut kbd_linux_d: aa_kbddriver = unsafe {
     {
         let mut init = aa_kbddriver {
             shortname: b"linux\0" as *const u8 as *const std::ffi::c_char,
             name: b"Linux console raw keyboard driver 1.0\0" as *const u8
                 as *const std::ffi::c_char,
-            flags: 1 as std::ffi::c_int,
-            init: Some(
-                linux_init
-                    as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
-            uninit: Some(linux_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getkey: Some(
-                linux_getchar
-                    as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
+            flags: 1,
+            init: Some(linux_init),
+            uninit: Some(linux_uninit),
+            getkey: Some(linux_getchar),
         };
         init
     }

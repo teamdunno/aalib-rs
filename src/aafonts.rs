@@ -262,17 +262,17 @@ pub static mut aa_fonts: [*const aa_font; 247] = unsafe {
     ]
 };
 
-pub unsafe extern "C" fn aa_registerfont(mut f: *const aa_font) -> std::ffi::c_int {
-    let mut i: std::ffi::c_int = 0;
-    i = 0 as std::ffi::c_int;
-    while i < 246 as std::ffi::c_int && !(aa_fonts[i as usize]).is_null() {
-        i += 1;
-        i;
+pub fn aa_registerfont(mut f: *const aa_font) -> i64 {
+    unsafe {
+        let mut i = 0;
+        while i < 246 && !(aa_fonts[i as usize]).is_null() {
+            i += 1;
+        }
+        if i == 246 {
+            return 0;
+        }
+        aa_fonts[i as usize] = f;
+        aa_fonts[(i + 1) as usize] = 0 as *const aa_font;
+        return 1;
     }
-    if i == 246 as std::ffi::c_int {
-        return 0 as std::ffi::c_int;
-    }
-    aa_fonts[i as usize] = f;
-    aa_fonts[(i + 1 as std::ffi::c_int) as usize] = 0 as *const aa_font;
-    return 1 as std::ffi::c_int;
 }

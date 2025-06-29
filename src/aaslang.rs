@@ -84,42 +84,14 @@ pub static mut slang_d: aa_driver = unsafe {
         let mut init = aa_driver {
             shortname: b"slang\0" as *const u8 as *const std::ffi::c_char,
             name: b"Slang driver 1.0\0" as *const u8 as *const std::ffi::c_char,
-            init: Some(
-                slang_init
-                    as unsafe extern "C" fn(
-                        *const aa_hardware_params,
-                        *const std::ffi::c_void,
-                        *mut aa_hardware_params,
-                        *mut *mut std::ffi::c_void,
-                    ) -> std::ffi::c_int,
-            ),
-            uninit: Some(slang_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getsize: Some(
-                slang_getsize
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        *mut std::ffi::c_int,
-                        *mut std::ffi::c_int,
-                    ) -> (),
-            ),
-            setattr: Some(
-                slang_setattr as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> (),
-            ),
-            print: Some(
-                slang_print as unsafe extern "C" fn(*mut aa_context, *const std::ffi::c_char) -> (),
-            ),
-            gotoxy: Some(
-                slang_gotoxy
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        std::ffi::c_int,
-                        std::ffi::c_int,
-                    ) -> (),
-            ),
-            flush: Some(slang_flush as unsafe extern "C" fn(*mut aa_context) -> ()),
-            cursormode: Some(
-                slang_cursor as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> (),
-            ),
+            init: Some(slang_init),
+            uninit: Some(slang_uninit),
+            getsize: Some(slang_getsize),
+            setattr: Some(slang_setattr),
+            print: Some(slang_print),
+            gotoxy: Some(slang_gotoxy),
+            flush: Some(slang_flush),
+            cursormode: Some(slang_cursor),
         };
         init
     }
@@ -129,20 +101,16 @@ pub static mut __slang_is_up: std::ffi::c_int = 0 as std::ffi::c_int;
 
 pub static mut __resized_slang: std::ffi::c_int = 0 as std::ffi::c_int;
 static mut uninitslang: std::ffi::c_int = 0;
-unsafe extern "C" fn slang_init(
+unsafe fn slang_init(
     mut p: *const aa_hardware_params,
     mut none: *const std::ffi::c_void,
     mut dest: *mut aa_hardware_params,
     mut params: *mut *mut std::ffi::c_void,
-) -> std::ffi::c_int {
+) -> i64 {
     let mut def: aa_hardware_params = {
         let mut init = aa_hardware_params {
             font: 0 as *const aa_font,
-            supported: 1 as std::ffi::c_int
-                | 4 as std::ffi::c_int
-                | 16 as std::ffi::c_int
-                | 8 as std::ffi::c_int
-                | 2 as std::ffi::c_int,
+            supported: 1 | 4 | 16 | 8 | 2,
             minwidth: 0,
             minheight: 0,
             maxwidth: 0,
@@ -162,17 +130,17 @@ unsafe extern "C" fn slang_init(
     fflush(stdout);
     if __slang_is_up == 0 {
         SLtt_get_terminfo();
-        __slang_is_up = 1 as std::ffi::c_int;
-        uninitslang = 1 as std::ffi::c_int;
+        __slang_is_up = 1;
+        uninitslang = 1;
     }
-    if SLsmg_init_smg() != 0 as std::ffi::c_int {
-        return 0 as std::ffi::c_int;
+    if SLsmg_init_smg() != 0 {
+        return 0;
     }
     if SLtt_Use_Ansi_Colors != 0 {
-        (*dest).supported &= !(8 as std::ffi::c_int);
+        (*dest).supported &= !8;
     }
-    SLsmg_Display_Eight_Bit = 128 as std::ffi::c_int;
-    (*dest).supported |= 256 as std::ffi::c_int;
+    SLsmg_Display_Eight_Bit = 128;
+    (*dest).supported |= 256;
     aa_recommendlow(
         &mut aa_mouserecommended,
         b"gpm\0" as *const u8 as *const std::ffi::c_char,
@@ -185,20 +153,16 @@ unsafe extern "C" fn slang_init(
         &mut aa_kbdrecommended,
         b"slang\0" as *const u8 as *const std::ffi::c_char,
     );
-    return 1 as std::ffi::c_int;
+    return 1;
 }
-unsafe extern "C" fn slang_uninit(mut c: *mut aa_context) {
+unsafe fn slang_uninit(mut c: *mut aa_context) {
     SLsmg_reset_smg();
     if uninitslang != 0 {
         uninitslang = 0 as std::ffi::c_int;
         __slang_is_up = 0 as std::ffi::c_int;
     }
 }
-unsafe extern "C" fn slang_getsize(
-    mut c: *mut aa_context,
-    mut width: *mut std::ffi::c_int,
-    mut height: *mut std::ffi::c_int,
-) {
+unsafe fn slang_getsize(mut c: *mut aa_context, mut width: &mut i64, mut height: &mut i64) {
     SLtt_get_screen_size();
     SLsmg_reset_smg();
     if SLsmg_init_smg() != 0 as std::ffi::c_int {
@@ -270,27 +234,23 @@ unsafe extern "C" fn slang_getsize(
         b"white\0" as *const u8 as *const std::ffi::c_char as *mut std::ffi::c_char,
         b"black\0" as *const u8 as *const std::ffi::c_char as *mut std::ffi::c_char,
     );
-    *width = SLtt_Screen_Cols;
-    *height = SLtt_Screen_Rows;
-    gpm_mx = *width;
-    gpm_my = *height;
+    *width = SLtt_Screen_Cols as i64;
+    *height = SLtt_Screen_Rows as i64;
+    gpm_mx = *width as i32;
+    gpm_my = *height as i32;
 }
-unsafe extern "C" fn slang_setattr(mut c: *mut aa_context, mut attr: std::ffi::c_int) {
+unsafe fn slang_setattr(mut c: *mut aa_context, mut attr: i64) {
     SLsmg_set_color(attr as SLsmg_Color_Type);
 }
-unsafe extern "C" fn slang_print(mut c: *mut aa_context, mut text: *const std::ffi::c_char) {
+unsafe fn slang_print(mut c: *mut aa_context, mut text: *const std::ffi::c_char) {
     SLsmg_write_string(text as *mut std::ffi::c_char);
 }
-unsafe extern "C" fn slang_flush(mut c: *mut aa_context) {
+unsafe fn slang_flush(mut c: *mut aa_context) {
     SLsmg_refresh();
 }
-unsafe extern "C" fn slang_gotoxy(
-    mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-) {
-    SLsmg_gotorc(y, x);
+unsafe fn slang_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
+    SLsmg_gotorc(y as std::ffi::c_int, x as std::ffi::c_int);
 }
-unsafe extern "C" fn slang_cursor(mut c: *mut aa_context, mut mode: std::ffi::c_int) {
-    SLtt_set_cursor_visibility(mode);
+unsafe fn slang_cursor(mut c: *mut aa_context, mut mode: i64) {
+    SLtt_set_cursor_visibility(mode as std::ffi::c_int);
 }

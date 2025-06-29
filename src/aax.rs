@@ -484,38 +484,14 @@ pub static mut X11_d: aa_driver = unsafe {
         let mut init = aa_driver {
             shortname: b"X11\0" as *const u8 as *const std::ffi::c_char,
             name: b"X11 driver 1.1\0" as *const u8 as *const std::ffi::c_char,
-            init: Some(
-                X_init
-                    as unsafe extern "C" fn(
-                        *const aa_hardware_params,
-                        *const std::ffi::c_void,
-                        *mut aa_hardware_params,
-                        *mut *mut std::ffi::c_void,
-                    ) -> std::ffi::c_int,
-            ),
-            uninit: Some(X_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getsize: Some(
-                X_getsize
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        *mut std::ffi::c_int,
-                        *mut std::ffi::c_int,
-                    ) -> (),
-            ),
+            init: Some(X_init),
+            uninit: Some(X_uninit),
+            getsize: Some(X_getsize),
             setattr: None,
             print: None,
-            gotoxy: Some(
-                X_gotoxy
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        std::ffi::c_int,
-                        std::ffi::c_int,
-                    ) -> (),
-            ),
-            flush: Some(X_flush as unsafe extern "C" fn(*mut aa_context) -> ()),
-            cursormode: Some(
-                X_cursor as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> (),
-            ),
+            gotoxy: Some(X_gotoxy),
+            flush: Some(X_flush),
+            cursormode: Some(X_cursor),
         };
         init
     }
@@ -786,12 +762,13 @@ unsafe extern "C" fn X_setinversionmode(mut inverted: std::ffi::c_int, mut d: *m
     (*d).previoust = 0 as *mut std::ffi::c_uchar;
     (*d).previousa = 0 as *mut std::ffi::c_uchar;
 }
-unsafe extern "C" fn X_init(
+unsafe fn X_init(
     mut p: *const aa_hardware_params,
     mut none: *const std::ffi::c_void,
     mut dest: *mut aa_hardware_params,
     mut driverdata: *mut *mut std::ffi::c_void,
-) -> std::ffi::c_int {
+) -> i64 {
+    /// we use `fixed` because it's almost always available..
     let mut font: *const std::ffi::c_char = b"fixed\0" as *const u8 as *const std::ffi::c_char;
     static mut registered: std::ffi::c_int = 0;
     static mut aafont: aa_font = aa_font {
@@ -804,24 +781,19 @@ unsafe extern "C" fn X_init(
         {
             let mut init = aa_hardware_params {
                 font: &aa_fontX13B as *const aa_font,
-                supported: 2 as std::ffi::c_int
-                    | 16 as std::ffi::c_int
-                    | 1 as std::ffi::c_int
-                    | 4 as std::ffi::c_int
-                    | 8 as std::ffi::c_int
-                    | (128 as std::ffi::c_int | 256 as std::ffi::c_int),
-                minwidth: 0 as std::ffi::c_int,
-                minheight: 0 as std::ffi::c_int,
-                maxwidth: 0 as std::ffi::c_int,
-                maxheight: 0 as std::ffi::c_int,
-                recwidth: 80 as std::ffi::c_int,
-                recheight: 32 as std::ffi::c_int,
-                mmwidth: 0 as std::ffi::c_int,
-                mmheight: 0 as std::ffi::c_int,
+                supported: 2 | 16 | 1 | 4 | 8 | (128 | 256),
+                minwidth: 0,
+                minheight: 0,
+                maxwidth: 0,
+                maxheight: 0,
+                recwidth: 80,
+                recheight: 32,
+                mmwidth: 0,
+                mmheight: 0,
                 width: 0,
                 height: 0,
-                dimmul: 0.,
-                boldmul: 0.,
+                dimmul: 0.0,
+                boldmul: 0.0,
             };
             init
         }
@@ -840,7 +812,7 @@ unsafe extern "C" fn X_init(
     (*d).height = 32 as std::ffi::c_int;
     (*d).dp = XOpenDisplay(0 as *const std::ffi::c_char);
     if ((*d).dp).is_null() {
-        return 0 as std::ffi::c_int;
+        return 0;
     }
     (*d).screen = (*((*d).dp as _XPrivDisplay)).default_screen;
     if !(getenv(b"AAFont\0" as *const u8 as *const std::ffi::c_char)).is_null() {
@@ -849,12 +821,12 @@ unsafe extern "C" fn X_init(
     (*d).font = XLoadFont((*d).dp, font) as std::ffi::c_int;
     if (*d).font == 0 {
         XCloseDisplay((*d).dp);
-        return 0 as std::ffi::c_int;
+        return 0;
     }
     (*d).font_s = XQueryFont((*d).dp, (*d).font as XID);
     if ((*d).font_s).is_null() {
         XCloseDisplay((*d).dp);
-        return 0 as std::ffi::c_int;
+        return 0;
     }
     (*d).fontheight = (*(*d).font_s).max_bounds.ascent as std::ffi::c_int
         + (*(*d).font_s).max_bounds.descent as std::ffi::c_int;
@@ -864,30 +836,30 @@ unsafe extern "C" fn X_init(
     (*d).cmap = (*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).cmap;
     X_AllocColors(d);
     if (*d).bold == (*d).normal {
-        (*dest).supported &= !(4 as std::ffi::c_int);
+        (*dest).supported &= !4;
     }
     if (*d).dim == (*d).normal {
-        (*dest).supported &= !(2 as std::ffi::c_int);
+        (*dest).supported &= !2;
     }
     (*d).attr.event_mask = (1 as std::ffi::c_long) << 15 as std::ffi::c_int;
     (*d).attr.override_redirect = 0 as std::ffi::c_int;
     if (*p).width != 0 {
-        (*d).width = (*p).width;
+        (*d).width = (*p).width as i32;
     }
     if (*p).height != 0 {
-        (*d).height = (*p).height;
+        (*d).height = (*p).height as i32;
     }
-    if (*p).maxwidth != 0 && (*d).width > (*p).maxwidth {
-        (*d).width = (*p).maxwidth;
+    if (*p).maxwidth != 0 && ((*d).width as i64) > (*p).maxwidth {
+        (*d).width = (*p).maxwidth as i32;
     }
-    if (*p).minwidth != 0 && (*d).width < (*p).minwidth {
-        (*d).width = (*p).minwidth;
+    if (*p).minwidth != 0 && ((*d).width as i64) < (*p).minwidth {
+        (*d).width = (*p).minwidth as i32;
     }
-    if (*p).maxheight != 0 && (*d).height > (*p).maxheight {
-        (*d).height = (*p).maxheight;
+    if (*p).maxheight != 0 && ((*d).height as i64) > (*p).maxheight {
+        (*d).height = (*p).maxheight as i32;
     }
-    if (*p).minheight != 0 && (*d).height < (*p).minheight {
-        (*d).height = (*p).minheight;
+    if (*p).minheight != 0 && ((*d).height as i64) < (*p).minheight {
+        (*d).height = (*p).minheight as i32;
     }
     (*d).wi = XCreateWindow(
         (*d).dp,
@@ -1026,7 +998,7 @@ unsafe extern "C" fn X_init(
                 }
                 aafont.name = b"Font used by X server\0" as *const u8 as *const std::ffi::c_char;
                 aafont.shortname = b"current\0" as *const u8 as *const std::ffi::c_char;
-                aafont.height = (*d).fontheight;
+                aafont.height = (*d).fontheight as i64;
                 aafont.data = data;
                 aa_registerfont(&mut aafont);
                 (*dest).font = &mut aafont;
@@ -1051,7 +1023,7 @@ unsafe extern "C" fn X_init(
         &mut aa_kbdrecommended,
         b"X11\0" as *const u8 as *const std::ffi::c_char,
     );
-    return 1 as std::ffi::c_int;
+    return 1;
 }
 
 pub unsafe extern "C" fn __aa_X_getsize(
@@ -1121,13 +1093,15 @@ pub unsafe extern "C" fn __aa_X_getsize(
             XSetWindowBackgroundPixmap((*d).dp, (*d).wi, (*d).pi);
         }
         (*c).driverparams.mmwidth =
-            (*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).mwidth
+            ((*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).mwidth
                 * (*d).pixelwidth
-                / (*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).width;
+                / (*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).width)
+                as i64;
         (*c).driverparams.mmheight =
-            (*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).mheight
+            ((*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).mheight
                 * (*d).pixelheight
-                / (*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).height;
+                / (*((*((*d).dp as _XPrivDisplay)).screens).offset((*d).screen as isize)).height)
+                as i64;
         if !((*d).previoust).is_null() {
             free((*d).previoust as *mut std::ffi::c_void);
             free((*d).previousa as *mut std::ffi::c_void);
@@ -1140,7 +1114,7 @@ pub unsafe extern "C" fn __aa_X_getsize(
     XSync((*d).dp, 0 as std::ffi::c_int);
     return tmp;
 }
-unsafe extern "C" fn X_uninit(mut c: *mut aa_context) {
+unsafe fn X_uninit(mut c: *mut aa_context) {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if !((*d).previoust).is_null() {
         free((*d).previoust as *mut std::ffi::c_void);
@@ -1151,19 +1125,15 @@ unsafe extern "C" fn X_uninit(mut c: *mut aa_context) {
     }
     XCloseDisplay((*d).dp);
 }
-unsafe extern "C" fn X_getsize(
-    mut c: *mut aa_context,
-    mut width1: *mut std::ffi::c_int,
-    mut height1: *mut std::ffi::c_int,
-) {
+unsafe fn X_getsize(mut c: *mut aa_context, mut width1: &mut i64, mut height1: &mut i64) {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     __aa_X_getsize(c, d);
     (*d).width = (*d).pixelwidth / (*d).realfontwidth;
-    *width1 = (*d).width;
+    *width1 = (*d).width.try_into().unwrap();
     (*d).height = (*d).pixelheight / (*d).fontheight;
-    *height1 = (*d).height;
+    *height1 = (*d).height.try_into().unwrap();
 }
-unsafe extern "C" fn X_setattr(mut d: *mut xdriverdata, mut attr: std::ffi::c_int) {
+unsafe fn X_setattr(mut d: *mut xdriverdata, mut attr: i64) {
     match attr {
         0 | 4 => {
             (*d).currGC = (*d).normalGC;
@@ -1335,30 +1305,30 @@ static mut Black: [std::ffi::c_int; 6] = [
     1 as std::ffi::c_int,
     1 as std::ffi::c_int,
 ];
-unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
+unsafe fn X_flush(mut c: *mut aa_context) {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
-    let mut x: std::ffi::c_int = 0;
-    let mut y: std::ffi::c_int = 0;
-    let mut attr: std::ffi::c_int = 0;
-    let mut xs: std::ffi::c_int = 0 as std::ffi::c_int;
-    let mut ys: std::ffi::c_int = 0 as std::ffi::c_int;
-    let mut l: std::ffi::c_int = 0;
-    let mut same: std::ffi::c_int = 0;
-    let mut s: std::ffi::c_int = 0 as std::ffi::c_int;
-    let mut pos: std::ffi::c_int = 0;
+    let mut x = 0;
+    let mut y = 0;
+    let mut attr = 0;
+    let mut xs = 0;
+    let mut ys = 0;
+    let mut l = 0;
+    let mut same = 0;
+    let mut s = 0;
+    let mut pos = 0;
     attr = AA_NORMAL as std::ffi::c_int;
     alloctables(d);
     drawed = 0 as std::ffi::c_int;
     area = 0 as std::ffi::c_int;
-    if (*c).imgwidth != (*d).imgwidth || (*c).imgheight != (*d).imgheight {
+    if (*c).imgwidth != (*d).imgwidth.into() || (*c).imgheight != (*d).imgheight.into() {
         if !((*d).previoust).is_null() {
             free((*d).previoust as *mut std::ffi::c_void);
             free((*d).previousa as *mut std::ffi::c_void);
         }
         (*d).previoust = 0 as *mut std::ffi::c_uchar;
         (*d).previousa = 0 as *mut std::ffi::c_uchar;
-        (*d).imgwidth = (*c).imgwidth;
-        (*d).imgheight = (*c).imgheight;
+        (*d).imgwidth = (*c).imgwidth as _;
+        (*d).imgheight = (*c).imgheight as _;
         if (*d).pixmapmode == 0 {
             XSetWindowBackground(
                 (*d).dp,
@@ -1401,14 +1371,14 @@ unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
         );
     }
     y = 0 as std::ffi::c_int;
-    while y < (*c).params.height {
+    while (y as i64) < (*c).params.height {
         l = 0 as std::ffi::c_int;
         s = l;
         xs = 0 as std::ffi::c_int;
         ys = y;
         x = 0 as std::ffi::c_int;
-        while x < (*c).params.width {
-            pos = x + y * (*c).params.width;
+        while (x as i64) < (*c).params.width {
+            pos = (x as i64 + y as i64 * (*c).params.width as i64) as i32;
             if s > 5 as std::ffi::c_int
                 || *((*c).attrbuffer).offset(pos as isize) as std::ffi::c_int != attr
                     && (*((*c).textbuffer).offset(pos as isize) as std::ffi::c_int != ' ' as i32
@@ -1421,7 +1391,8 @@ unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
                         attr,
                         xs,
                         ys,
-                        &mut *((*c).textbuffer).offset((xs + ys * (*c).params.width) as isize),
+                        &mut *((*c).textbuffer)
+                            .offset((xs as i64 + ys as i64 * (*c).params.width) as isize),
                         l - s,
                     );
                 }
@@ -1466,7 +1437,8 @@ unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
                 attr,
                 xs,
                 ys,
-                &mut *((*c).textbuffer).offset((xs + ys * (*c).params.width) as isize),
+                &mut *((*c).textbuffer)
+                    .offset((xs as i64 + ys as i64 * (*c).params.width) as isize),
                 l - s,
             );
         }
@@ -1552,7 +1524,7 @@ unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
             x = 0 as std::ffi::c_int;
             while x < 5 as std::ffi::c_int {
                 if (*nitem.offset(y as isize))[x as usize] != 0 {
-                    X_setattr(d, x);
+                    X_setattr(d, x.into());
                     XDrawText(
                         (*d).dp,
                         if (*d).pixmapmode != 0 {
@@ -1563,10 +1535,7 @@ unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
                         (*d).currGC,
                         0 as std::ffi::c_int,
                         (y + 1 as std::ffi::c_int) * (*d).fontheight - (*(*d).font_s).descent,
-                        &mut *_texty.offset(
-                            ((y * 5 as std::ffi::c_int + x) * (*d).width + 0 as std::ffi::c_int)
-                                as isize,
-                        ),
+                        &mut *_texty.offset(((y * 5 + x) * (*d).width + 0) as isize),
                         (*nitem.offset(y as isize))[x as usize],
                     );
                     if x == 4 as std::ffi::c_int {
@@ -1580,10 +1549,7 @@ unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
                             (*d).currGC,
                             1 as std::ffi::c_int,
                             (y + 1 as std::ffi::c_int) * (*d).fontheight - (*(*d).font_s).descent,
-                            &mut *_texty.offset(
-                                ((y * 5 as std::ffi::c_int + x) * (*d).width + 0 as std::ffi::c_int)
-                                    as isize,
-                            ),
+                            &mut *_texty.offset(((y * 5 + x) * (*d).width + 0) as isize),
                             (*nitem.offset(y as isize))[x as usize],
                         );
                     }
@@ -1631,7 +1597,7 @@ unsafe extern "C" fn X_flush(mut c: *mut aa_context) {
     freetables();
 }
 
-pub unsafe extern "C" fn __aa_X_redraw(mut c: *mut aa_context) {
+pub unsafe fn __aa_X_redraw(mut c: *mut aa_context) {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if (*d).pixmapmode != 0 && !((*d).previoust).is_null() {
         XFlush((*d).dp);
@@ -1646,11 +1612,9 @@ pub unsafe extern "C" fn __aa_X_redraw(mut c: *mut aa_context) {
     X_flush(c);
     XFlush((*d).dp);
 }
-unsafe extern "C" fn X_gotoxy(
-    mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-) {
+unsafe fn X_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
+    let mut x = x as std::ffi::c_int;
+    let mut y = y as std::ffi::c_int;
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
     if (*d).Xpos != x || (*d).Ypos != y {
         if !((*d).previoust).is_null() {
@@ -1662,7 +1626,7 @@ unsafe extern "C" fn X_gotoxy(
         X_flush(c);
     }
 }
-unsafe extern "C" fn X_cursor(mut c: *mut aa_context, mut mode: std::ffi::c_int) {
+unsafe fn X_cursor(mut c: *mut aa_context, mut mode: i64) {
     let mut d: *mut xdriverdata = (*c).driverdata as *mut xdriverdata;
-    (*d).cvisible = mode;
+    (*d).cvisible = mode as std::ffi::c_int;
 }

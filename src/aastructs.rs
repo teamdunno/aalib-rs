@@ -2,30 +2,27 @@
 
 use crate::aasave::FILE;
 
-pub type aa_dithering_mode = std::ffi::c_uint;
+pub type aa_dithering_mode = u64;
 
 #[derive(Copy, Clone)]
 pub struct aa_driver {
     pub shortname: *const std::ffi::c_char,
     pub name: *const std::ffi::c_char,
     pub init: Option<
-        unsafe extern "C" fn(
+        unsafe fn(
             *const aa_hardware_params,
             *const std::ffi::c_void,
             *mut aa_hardware_params,
             *mut *mut std::ffi::c_void,
-        ) -> std::ffi::c_int,
+        ) -> i64,
     >,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getsize: Option<
-        unsafe extern "C" fn(*mut aa_context, *mut std::ffi::c_int, *mut std::ffi::c_int) -> (),
-    >,
-    pub setattr: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
-    pub print: Option<unsafe extern "C" fn(*mut aa_context, *const std::ffi::c_char) -> ()>,
-    pub gotoxy:
-        Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int, std::ffi::c_int) -> ()>,
-    pub flush: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
+    pub uninit: Option<unsafe fn(*mut aa_context) -> ()>,
+    pub getsize: Option<unsafe fn(*mut aa_context, &mut i64, &mut i64) -> ()>,
+    pub setattr: Option<unsafe fn(*mut aa_context, i64) -> ()>,
+    pub print: Option<unsafe fn(*mut aa_context, *const std::ffi::c_char) -> ()>,
+    pub gotoxy: Option<unsafe fn(*mut aa_context, i64, i64) -> ()>,
+    pub flush: Option<unsafe fn(*mut aa_context) -> ()>,
+    pub cursormode: Option<unsafe fn(*mut aa_context, i64) -> ()>,
 }
 #[derive(Copy, Clone)]
 pub struct aa_context {
@@ -34,53 +31,53 @@ pub struct aa_context {
     pub mousedriver: *const aa_mousedriver,
     pub params: aa_hardware_params,
     pub driverparams: aa_hardware_params,
-    pub mulx: std::ffi::c_int,
-    pub muly: std::ffi::c_int,
-    pub imgwidth: std::ffi::c_int,
-    pub imgheight: std::ffi::c_int,
+    pub mulx: i64,
+    pub muly: i64,
+    pub imgwidth: i64,
+    pub imgheight: i64,
     pub imagebuffer: *mut std::ffi::c_uchar,
     pub textbuffer: *mut std::ffi::c_uchar,
     pub attrbuffer: *mut std::ffi::c_uchar,
-    pub table: *mut std::ffi::c_ushort,
-    pub filltable: *mut std::ffi::c_ushort,
+    pub table: *mut u32,
+    pub filltable: *mut u32,
     pub parameters: *mut parameters,
-    pub cursorx: std::ffi::c_int,
-    pub cursory: std::ffi::c_int,
-    pub cursorstate: std::ffi::c_int,
-    pub mousex: std::ffi::c_int,
-    pub mousey: std::ffi::c_int,
-    pub buttons: std::ffi::c_int,
-    pub mousemode: std::ffi::c_int,
-    pub resizehandler: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
+    pub cursorx: i64,
+    pub cursory: i64,
+    pub cursorstate: i64,
+    pub mousex: i64,
+    pub mousey: i64,
+    pub buttons: i64,
+    pub mousemode: i64,
+    pub resizehandler: Option<unsafe fn(*mut aa_context) -> ()>,
     pub driverdata: *mut std::ffi::c_void,
     pub kbddriverdata: *mut std::ffi::c_void,
     pub mousedriverdata: *mut std::ffi::c_void,
 }
 #[derive(Copy, Clone)]
 pub struct parameters {
-    pub p: [std::ffi::c_uint; 5],
+    pub p: [i64; 5],
 }
 #[derive(Copy, Clone)]
 pub struct aa_hardware_params {
     pub font: *const aa_font,
-    pub supported: std::ffi::c_int,
-    pub minwidth: std::ffi::c_int,
-    pub minheight: std::ffi::c_int,
-    pub maxwidth: std::ffi::c_int,
-    pub maxheight: std::ffi::c_int,
-    pub recwidth: std::ffi::c_int,
-    pub recheight: std::ffi::c_int,
-    pub mmwidth: std::ffi::c_int,
-    pub mmheight: std::ffi::c_int,
-    pub width: std::ffi::c_int,
-    pub height: std::ffi::c_int,
-    pub dimmul: std::ffi::c_double,
-    pub boldmul: std::ffi::c_double,
+    pub supported: i64,
+    pub minwidth: i64,
+    pub minheight: i64,
+    pub maxwidth: i64,
+    pub maxheight: i64,
+    pub recwidth: i64,
+    pub recheight: i64,
+    pub mmwidth: i64,
+    pub mmheight: i64,
+    pub width: i64,
+    pub height: i64,
+    pub dimmul: f32,
+    pub boldmul: f32,
 }
 #[derive(Copy, Clone)]
 pub struct aa_font {
     pub data: *const std::ffi::c_uchar,
-    pub height: std::ffi::c_int,
+    pub height: i64,
     pub name: *const std::ffi::c_char,
     pub shortname: *const std::ffi::c_char,
 }
@@ -88,48 +85,41 @@ pub struct aa_font {
 pub struct aa_mousedriver {
     pub shortname: *const std::ffi::c_char,
     pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getmouse: Option<
-        unsafe extern "C" fn(
-            *mut aa_context,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-            *mut std::ffi::c_int,
-        ) -> (),
-    >,
-    pub cursormode: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> ()>,
+    pub flags: i64,
+    pub init: Option<unsafe fn(*mut aa_context, i64) -> i64>,
+    pub uninit: Option<unsafe fn(*mut aa_context) -> ()>,
+    pub getmouse: Option<unsafe fn(*mut aa_context, *mut i64, *mut i64, *mut i64) -> ()>,
+    pub cursormode: Option<unsafe fn(*mut aa_context, i64) -> ()>,
 }
 #[derive(Copy, Clone)]
 pub struct aa_kbddriver {
     pub shortname: *const std::ffi::c_char,
     pub name: *const std::ffi::c_char,
-    pub flags: std::ffi::c_int,
-    pub init: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
-    pub uninit: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
-    pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
+    pub flags: i64,
+    pub init: Option<unsafe fn(*mut aa_context, i64) -> i64>,
+    pub uninit: Option<unsafe fn(*mut aa_context) -> ()>,
+    pub getkey: Option<unsafe fn(*mut aa_context, i64) -> i64>,
 }
 #[derive(Copy, Clone)]
 pub struct aa_edit {
-    pub maxsize: std::ffi::c_int,
+    pub maxsize: i64,
     pub data: *mut std::ffi::c_char,
-    pub cursor: std::ffi::c_int,
-    pub clearafterpress: std::ffi::c_int,
-    pub printpos: std::ffi::c_int,
-    pub x: std::ffi::c_int,
-    pub y: std::ffi::c_int,
-    pub size: std::ffi::c_int,
+    pub cursor: i64,
+    pub clearafterpress: i64,
+    pub printpos: i64,
+    pub x: i64,
+    pub y: i64,
+    pub size: i64,
     pub c: *mut aa_context,
 }
 #[derive(Copy, Clone)]
 pub struct aa_renderparams {
-    pub bright: std::ffi::c_int,
-    pub contrast: std::ffi::c_int,
+    pub bright: i64,
+    pub contrast: i64,
     pub gamma: std::ffi::c_float,
     pub dither: aa_dithering_mode,
-    pub inversion: std::ffi::c_int,
-    pub randomval: std::ffi::c_int,
+    pub inversion: i64,
+    pub randomval: i64,
 }
 #[derive(Copy, Clone)]
 pub struct aa_linkedlist {
@@ -145,12 +135,12 @@ pub struct aa_savedata {
 }
 #[derive(Copy, Clone)]
 pub struct aa_format {
-    pub width: std::ffi::c_int,
-    pub height: std::ffi::c_int,
-    pub pagewidth: std::ffi::c_int,
-    pub pageheight: std::ffi::c_int,
-    pub flags: std::ffi::c_int,
-    pub supported: std::ffi::c_int,
+    pub width: i64,
+    pub height: i64,
+    pub pagewidth: i64,
+    pub pageheight: i64,
+    pub flags: i64,
+    pub supported: i64,
     pub font: *const aa_font,
     pub formatname: *const std::ffi::c_char,
     pub extension: *const std::ffi::c_char,

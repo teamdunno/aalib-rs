@@ -1063,7 +1063,7 @@ pub static mut aa_fontgl: aa_font = unsafe {
     {
         let mut init = aa_font {
             data: fontgldata.as_ptr(),
-            height: 8 as std::ffi::c_int,
+            height: 8,
             name: b"Font 8x8 from vgagl\0" as *const u8 as *const std::ffi::c_char,
             shortname: b"vgagl8\0" as *const u8 as *const std::ffi::c_char,
         };

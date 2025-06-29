@@ -3079,7 +3079,7 @@ pub static mut aa_fontcourier: aa_font = unsafe {
     {
         let mut init = aa_font {
             data: fontcourierdata.as_ptr(),
-            height: 12 as std::ffi::c_int,
+            height: 12,
             name: b"Adobe courier\0" as *const u8 as *const std::ffi::c_char,
             shortname: b"courier\0" as *const u8 as *const std::ffi::c_char,
         };

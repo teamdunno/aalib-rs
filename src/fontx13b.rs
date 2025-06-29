@@ -3335,7 +3335,7 @@ pub static mut aa_fontX13B: aa_font = unsafe {
     {
         let mut init = aa_font {
             data: fontX13Bdata.as_ptr(),
-            height: 13 as std::ffi::c_int,
+            height: 13,
             name: b"X 8x13bold font\0" as *const u8 as *const std::ffi::c_char,
             shortname: b"X8x13bold\0" as *const u8 as *const std::ffi::c_char,
         };

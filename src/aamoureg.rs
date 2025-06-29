@@ -19,49 +19,48 @@ pub static mut aa_mousedrivers: [*const aa_mousedriver; 3] = unsafe {
     ]
 };
 
-pub unsafe extern "C" fn aa_autoinitmouse(
-    mut context: *mut aa_context,
-    mut mode: std::ffi::c_int,
-) -> std::ffi::c_int {
-    let mut i: std::ffi::c_int = 0 as std::ffi::c_int;
-    let mut ok: std::ffi::c_int = 0 as std::ffi::c_int;
-    let mut t: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
-    loop {
-        t = aa_getfirst(&mut aa_mouserecommended);
-        if t.is_null() {
-            break;
-        }
-        if ok == 0 {
-            i = 0 as std::ffi::c_int;
-            while !(aa_mousedrivers[i as usize]).is_null() {
-                if strcmp(t, (*aa_mousedrivers[i as usize]).name) == 0
-                    || strcmp(t, (*aa_mousedrivers[i as usize]).shortname) == 0
-                {
-                    ok = aa_initmouse(context, aa_mousedrivers[i as usize], mode);
-                    break;
-                } else {
-                    i += 1;
-                    i;
+pub fn aa_autoinitmouse(mut context: *mut aa_context, mut mode: std::ffi::c_int) -> i64 {
+    unsafe {
+        let mut i = 0;
+        let mut ok = 0;
+        let mut t: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
+        loop {
+            t = aa_getfirst(&mut aa_mouserecommended);
+            if t.is_null() {
+                break;
+            }
+            if ok == 0 {
+                i = 0 as std::ffi::c_int;
+                while !(aa_mousedrivers[i as usize]).is_null() {
+                    if strcmp(t, (*aa_mousedrivers[i as usize]).name) == 0
+                        || strcmp(t, (*aa_mousedrivers[i as usize]).shortname) == 0
+                    {
+                        ok = aa_initmouse(context, aa_mousedrivers[i as usize], mode.into());
+                        break;
+                    } else {
+                        i += 1;
+                        i;
+                    }
                 }
+                if (aa_mousedrivers[i as usize]).is_null() {
+                    printf(
+                        b"Driver %s unknown\0" as *const u8 as *const std::ffi::c_char,
+                        t,
+                    );
+                }
+                free(t as *mut std::ffi::c_void);
             }
-            if (aa_mousedrivers[i as usize]).is_null() {
-                printf(
-                    b"Driver %s unknown\0" as *const u8 as *const std::ffi::c_char,
-                    t,
-                );
-            }
-            free(t as *mut std::ffi::c_void);
         }
-    }
-    i = 0 as std::ffi::c_int;
-    if ok == 0 {
-        while !(aa_mousedrivers[i as usize]).is_null() {
-            if aa_initmouse(context, aa_mousedrivers[i as usize], mode) != 0 {
-                return 1 as std::ffi::c_int;
+        i = 0 as std::ffi::c_int;
+        if ok == 0 {
+            while !(aa_mousedrivers[i as usize]).is_null() {
+                if aa_initmouse(context, aa_mousedrivers[i as usize], mode.into()) != 0 {
+                    return 1;
+                }
+                i += 1;
+                i;
             }
-            i += 1;
-            i;
         }
+        return ok;
     }
-    return ok;
 }

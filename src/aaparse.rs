@@ -1,4 +1,7 @@
-use super::aarec::aa_recommendhi;
+use super::aafonts::aa_fonts;
+use super::aalib::aa_defparams;
+use super::aarec::{aa_displayrecommended, aa_kbdrecommended, aa_mouserecommended, aa_recommendhi};
+use super::aarender::aa_defrenderparams;
 use super::aastructs::*;
 use ::c2rust_bitfields;
 unsafe extern "C" {
@@ -21,12 +24,6 @@ unsafe extern "C" {
     static mut stderr: *mut FILE;
     fn fprintf(_: *mut FILE, _: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
     fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
-    static mut aa_fonts: [*const aa_font; 0];
-    static mut aa_kbdrecommended: *mut aa_linkedlist;
-    static mut aa_mouserecommended: *mut aa_linkedlist;
-    static mut aa_displayrecommended: *mut aa_linkedlist;
-    static mut aa_defparams: aa_hardware_params;
-    static mut aa_defrenderparams: aa_renderparams;
 }
 pub type __off_t = std::ffi::c_long;
 pub type __off64_t = std::ffi::c_long;
@@ -108,534 +105,543 @@ unsafe extern "C" fn aa_remove(
     *argc;
 }
 
-pub unsafe extern "C" fn aa_parseoptions(
+/// This is a (mostly unmodified) function, because it takes raw C-style argc and argv. Use it like
+/// this:
+/// ```
+/// TODO: document this here
+/// ```
+pub fn aa_parseoptions(
     mut p: *mut aa_hardware_params,
     mut r: *mut aa_renderparams,
     mut argc: *mut std::ffi::c_int,
     mut argv: *mut *mut std::ffi::c_char,
 ) -> std::ffi::c_int {
-    let mut i: std::ffi::c_int = 0;
-    let mut y: std::ffi::c_int = 0;
-    let mut supported: std::ffi::c_int = 0;
-    if inparse == 0 {
-        parseenv(p, r);
-    }
-    if argc.is_null() || argv.is_null() {
-        return 1 as std::ffi::c_int;
-    }
-    supported = if !p.is_null() {
-        (*p).supported
-    } else {
-        aa_defparams.supported
-    };
-    if p.is_null() {
-        p = &mut aa_defparams;
-    }
-    if r.is_null() {
-        r = &mut aa_defrenderparams;
-    }
-    i = 1 as std::ffi::c_int;
-    while i < *argc {
-        if strcmp(
-            *argv.offset(i as isize),
-            b"-font\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"font name expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            y = 0 as std::ffi::c_int;
-            while !(*aa_fonts.as_mut_ptr().offset(y as isize)).is_null() {
-                if strcmp(
-                    *argv.offset(i as isize),
-                    (**aa_fonts.as_mut_ptr().offset(y as isize)).name,
-                ) == 0
-                    || strcmp(
-                        *argv.offset(i as isize),
-                        (**aa_fonts.as_mut_ptr().offset(y as isize)).shortname,
-                    ) == 0
-                {
-                    (*p).font = *aa_fonts.as_mut_ptr().offset(y as isize);
-                    aa_remove(i, argc, argv);
-                    break;
-                } else {
-                    y += 1;
-                    y;
+    unsafe {
+        let mut i: std::ffi::c_int = 0;
+        let mut y: std::ffi::c_int = 0;
+        let mut supported: std::ffi::c_int = 0;
+        if inparse == 0 {
+            parseenv(p, r);
+        }
+        if argc.is_null() || argv.is_null() {
+            return 1 as std::ffi::c_int;
+        }
+        supported = if !p.is_null() {
+            (*p).supported.try_into().unwrap()
+        } else {
+            aa_defparams.supported.try_into().unwrap()
+        };
+        if p.is_null() {
+            p = &mut aa_defparams;
+        }
+        if r.is_null() {
+            r = &mut aa_defrenderparams;
+        }
+        i = 1 as std::ffi::c_int;
+        while i < *argc {
+            if strcmp(
+                *argv.offset(i as isize),
+                b"-font\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"font name expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
                 }
+                y = 0 as std::ffi::c_int;
+                while !(*aa_fonts.as_mut_ptr().offset(y as isize)).is_null() {
+                    if strcmp(
+                        *argv.offset(i as isize),
+                        (**aa_fonts.as_mut_ptr().offset(y as isize)).name,
+                    ) == 0
+                        || strcmp(
+                            *argv.offset(i as isize),
+                            (**aa_fonts.as_mut_ptr().offset(y as isize)).shortname,
+                        ) == 0
+                    {
+                        (*p).font = *aa_fonts.as_mut_ptr().offset(y as isize);
+                        aa_remove(i, argc, argv);
+                        break;
+                    } else {
+                        y += 1;
+                        y;
+                    }
+                }
+                if (*aa_fonts.as_mut_ptr().offset(i as isize)).is_null() {
+                    fprintf(
+                        stderr,
+                        b"font name expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-normal\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported |= 1 as std::ffi::c_int;
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-nonormal\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported &= !(1 as std::ffi::c_int);
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-bold\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported |= 4 as std::ffi::c_int;
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-nobold\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported &= !(4 as std::ffi::c_int);
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-boldfont\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported |= 8 as std::ffi::c_int;
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-noboldfont\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported &= !(8 as std::ffi::c_int);
+                (*p).supported = supported.into();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-dim\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported |= 2 as std::ffi::c_int;
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-nodim\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported &= !(2 as std::ffi::c_int);
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-reverse\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported |= 16 as std::ffi::c_int;
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-extended\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported |= 128 as std::ffi::c_int | 256 as std::ffi::c_int;
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-eight\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported |= 256 as std::ffi::c_int;
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-noreverse\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                supported &= !(16 as std::ffi::c_int);
+                (*p).supported = supported.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-inverse\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                (*r).inversion = 1;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-noinverse\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                (*r).inversion = 0;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-nodither\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                (*r).dither = AA_NONE.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-floyd_steinberg\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                (*r).dither = AA_FLOYD_S.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-error_distribution\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+                (*r).dither = AA_ERRORDISTRIB.try_into().unwrap();
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-random\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Random dithering value expected\n\0" as *const u8
+                            as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*r).randomval = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-bright\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Bright value expected(0-255)\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*r).bright = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-contrast\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Contrast value expected(0-255)\n\0" as *const u8
+                            as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*r).contrast = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-width\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).width = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-recwidth\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).recwidth = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-minwidth\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).minwidth = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-maxwidth\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).maxwidth = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-height\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).height = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-recheight\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).recheight = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-minheight\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).minheight = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-maxheight\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).maxheight = atol(*argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-gamma\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Gamma value expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*r).gamma = atof(*argv.offset(i as isize)) as std::ffi::c_float;
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-dimmul\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Dimmul value expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).dimmul = atof(*argv.offset(i as isize)) as f32;
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-boldmul\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Dimmul value expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                (*p).boldmul = atof(*argv.offset(i as isize)) as f32;
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-driver\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Driver name expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                aa_recommendhi(&mut aa_displayrecommended, *argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-kbddriver\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Driver name expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                aa_recommendhi(&mut aa_kbdrecommended, *argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
+            } else if strcmp(
+                *argv.offset(i as isize),
+                b"-mousedriver\0" as *const u8 as *const std::ffi::c_char,
+            ) == 0 as std::ffi::c_int
+            {
+                aa_remove(i, argc, argv);
+                if *argc == i {
+                    fprintf(
+                        stderr,
+                        b"Driver name expected\n\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    return 0 as std::ffi::c_int;
+                }
+                aa_recommendhi(&mut aa_mouserecommended, *argv.offset(i as isize));
+                aa_remove(i, argc, argv);
+                i -= 1;
+                i;
             }
-            if (*aa_fonts.as_mut_ptr().offset(i as isize)).is_null() {
-                fprintf(
-                    stderr,
-                    b"font name expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-normal\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported |= 1 as std::ffi::c_int;
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-nonormal\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported &= !(1 as std::ffi::c_int);
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-bold\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported |= 4 as std::ffi::c_int;
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-nobold\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported &= !(4 as std::ffi::c_int);
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-boldfont\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported |= 8 as std::ffi::c_int;
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-noboldfont\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported &= !(8 as std::ffi::c_int);
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-dim\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported |= 2 as std::ffi::c_int;
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-nodim\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported &= !(2 as std::ffi::c_int);
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-reverse\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported |= 16 as std::ffi::c_int;
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-extended\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported |= 128 as std::ffi::c_int | 256 as std::ffi::c_int;
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-eight\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported |= 256 as std::ffi::c_int;
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-noreverse\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            supported &= !(16 as std::ffi::c_int);
-            (*p).supported = supported;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-inverse\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            (*r).inversion = 1 as std::ffi::c_int;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-noinverse\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            (*r).inversion = 0 as std::ffi::c_int;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-nodither\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            (*r).dither = AA_NONE;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-floyd_steinberg\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            (*r).dither = AA_FLOYD_S;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-error_distribution\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-            (*r).dither = AA_ERRORDISTRIB;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-random\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Random dithering value expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*r).randomval = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-bright\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Bright value expected(0-255)\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*r).bright = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-contrast\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Contrast value expected(0-255)\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*r).contrast = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-width\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).width = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-recwidth\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).recwidth = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-minwidth\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).minwidth = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-maxwidth\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"width expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).maxwidth = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-height\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).height = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-recheight\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).recheight = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-minheight\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).minheight = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-maxheight\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"height expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).maxheight = atol(*argv.offset(i as isize)) as std::ffi::c_int;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-gamma\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Gamma value expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*r).gamma = atof(*argv.offset(i as isize)) as std::ffi::c_float;
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-dimmul\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Dimmul value expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).dimmul = atof(*argv.offset(i as isize));
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-boldmul\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Dimmul value expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            (*p).boldmul = atof(*argv.offset(i as isize));
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-driver\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Driver name expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            aa_recommendhi(&mut aa_displayrecommended, *argv.offset(i as isize));
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-kbddriver\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Driver name expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            aa_recommendhi(&mut aa_kbdrecommended, *argv.offset(i as isize));
-            aa_remove(i, argc, argv);
-            i -= 1;
-            i;
-        } else if strcmp(
-            *argv.offset(i as isize),
-            b"-mousedriver\0" as *const u8 as *const std::ffi::c_char,
-        ) == 0 as std::ffi::c_int
-        {
-            aa_remove(i, argc, argv);
-            if *argc == i {
-                fprintf(
-                    stderr,
-                    b"Driver name expected\n\0" as *const u8 as *const std::ffi::c_char,
-                );
-                return 0 as std::ffi::c_int;
-            }
-            aa_recommendhi(&mut aa_mouserecommended, *argv.offset(i as isize));
-            aa_remove(i, argc, argv);
-            i -= 1;
+            i += 1;
             i;
         }
-        i += 1;
-        i;
+        return 1 as std::ffi::c_int;
     }
-    return 1 as std::ffi::c_int;
 }
 unsafe extern "C" fn parseenv(mut p: *mut aa_hardware_params, mut r: *mut aa_renderparams) {
     let mut env: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;

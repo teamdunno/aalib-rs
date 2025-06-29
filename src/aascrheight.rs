@@ -1,5 +1,7 @@
 use super::aastructs::*;
 
-pub unsafe extern "C" fn aa_scrheight(mut a: *mut aa_context) -> std::ffi::c_int {
-    return (*a).params.height;
+pub fn aa_scrheight(mut a: *mut aa_context) -> i64 {
+    unsafe {
+        return (*a).params.height;
+    }
 }

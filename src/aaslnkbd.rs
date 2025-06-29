@@ -1,5 +1,8 @@
+use super::aarec::aa_mouserecommended;
 use super::aarec::aa_recommendlow;
+use super::aaslang::{__resized_slang, __slang_is_up};
 use super::aastructs::*;
+
 use ::c2rust_bitfields;
 
 unsafe extern "C" {
@@ -39,10 +42,8 @@ unsafe extern "C" {
     fn Gpm_Getc(_: *mut FILE) -> std::ffi::c_int;
     static mut gpm_consolefd: std::ffi::c_int;
     fn ioctl(__fd: std::ffi::c_int, __request: std::ffi::c_ulong, _: ...) -> std::ffi::c_int;
-    static mut aa_mouserecommended: *mut aa_linkedlist;
-    static mut __slang_is_up: std::ffi::c_int;
-    static mut __resized_slang: std::ffi::c_int;
 }
+
 pub type __jmp_buf = [std::ffi::c_long; 8];
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -171,10 +172,7 @@ unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
         longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
     }
 }
-unsafe extern "C" fn slang_init(
-    mut context: *mut aa_context,
-    mut mode: std::ffi::c_int,
-) -> std::ffi::c_int {
+unsafe fn slang_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
     if __slang_is_up == 0 {
         fflush(stdout);
         SLtt_get_terminfo();
@@ -185,18 +183,13 @@ unsafe extern "C" fn slang_init(
         b"/dev/null\0" as *const u8 as *const std::ffi::c_char,
         b"r\0" as *const u8 as *const std::ffi::c_char,
     );
-    if SLang_init_tty(
-        -(1 as std::ffi::c_int),
-        0 as std::ffi::c_int,
-        0 as std::ffi::c_int,
-    ) == -(1 as std::ffi::c_int)
-    {
-        return 0 as std::ffi::c_int;
+    if SLang_init_tty(-1, 0, 0) == -1 {
+        return 0;
     }
-    if -(1 as std::ffi::c_int) == SLkp_init() {
-        return 0 as std::ffi::c_int;
+    if SLkp_init() == -1 {
+        return 0;
     }
-    __slang_keyboard = 1 as std::ffi::c_int;
+    __slang_keyboard = 1;
     aa_recommendlow(
         &mut aa_mouserecommended,
         b"gpm\0" as *const u8 as *const std::ffi::c_char,
@@ -205,19 +198,16 @@ unsafe extern "C" fn slang_init(
         28 as std::ffi::c_int,
         Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
     );
-    return 1 as std::ffi::c_int;
+    return 1;
 }
-unsafe extern "C" fn slang_uninit(mut c: *mut aa_context) {
+unsafe fn slang_uninit(mut c: *mut aa_context) {
     if uninitslang != 0 {
         uninitslang = 0 as std::ffi::c_int;
         __slang_is_up = 0 as std::ffi::c_int;
     }
     SLang_reset_tty();
 }
-unsafe extern "C" fn slang_getchar(
-    mut c1: *mut aa_context,
-    mut wait: std::ffi::c_int,
-) -> std::ffi::c_int {
+unsafe fn slang_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
     let mut c: std::ffi::c_int = 0;
     let mut flag: std::ffi::c_int = 0 as std::ffi::c_int;
     static mut ev: Gpm_Event = Gpm_Event {
@@ -253,12 +243,12 @@ unsafe extern "C" fn slang_getchar(
             &mut __resized_slang as *mut std::ffi::c_int,
             1 as std::ffi::c_int,
         );
-        return 258 as std::ffi::c_int;
+        return 258;
     }
     if wait == 0 {
         if gpm_fd == -(1 as std::ffi::c_int) {
             if SLang_input_pending(0 as std::ffi::c_int) == 0 {
-                return AA_NONE as std::ffi::c_int;
+                return AA_NONE.try_into().unwrap();
             }
         } else {
             *_gpm_buf.as_mut_ptr().offset(
@@ -328,7 +318,7 @@ unsafe extern "C" fn slang_getchar(
                 ),
             );
             if ::core::ptr::read_volatile::<std::ffi::c_int>(&flag as *const std::ffi::c_int) == 0 {
-                return AA_NONE as std::ffi::c_int;
+                return AA_NONE.try_into().unwrap();
             }
         }
     }
@@ -399,7 +389,7 @@ unsafe extern "C" fn slang_getchar(
         }
         if flag == -(1 as std::ffi::c_int) {
             printf(b"error!\n\0" as *const u8 as *const std::ffi::c_char);
-            return AA_NONE as std::ffi::c_int;
+            return AA_NONE.try_into().unwrap();
         }
         if gpm_fd > -(1 as std::ffi::c_int)
             && readfds.__fds_bits[(gpm_fd
@@ -420,7 +410,7 @@ unsafe extern "C" fn slang_getchar(
                     != 0
             {
                 gpm_hflag = 1 as std::ffi::c_int;
-                return 259 as std::ffi::c_int;
+                return 259;
             }
         }
     }
@@ -435,41 +425,36 @@ unsafe extern "C" fn slang_getchar(
             &mut __resized_slang as *mut std::ffi::c_int,
             1 as std::ffi::c_int,
         );
-        return 258 as std::ffi::c_int;
+        return 258;
     }
     if c == 27 as std::ffi::c_int {
-        return 305 as std::ffi::c_int;
+        return 305;
     }
     if c > 0 as std::ffi::c_int && c < 128 as std::ffi::c_int && c != 127 as std::ffi::c_int {
-        return c;
+        return c.try_into().unwrap();
     }
     match c {
-        65535 => return AA_NONE as std::ffi::c_int,
-        259 => return 302 as std::ffi::c_int,
-        260 => return 303 as std::ffi::c_int,
-        257 => return 300 as std::ffi::c_int,
-        258 => return 301 as std::ffi::c_int,
-        272 | 127 => return 304 as std::ffi::c_int,
+        65535 => return AA_NONE.try_into().unwrap(),
+        259 => return 302,
+        260 => return 303,
+        257 => return 300,
+        258 => return 301,
+        272 | 127 => return 304,
         _ => {}
     }
-    return 400 as std::ffi::c_int;
+    return 400;
 }
 
+#[unsafe(no_mangle)]
 pub static mut kbd_slang_d: aa_kbddriver = unsafe {
     {
         let mut init = aa_kbddriver {
             shortname: b"slang\0" as *const u8 as *const std::ffi::c_char,
             name: b"Slang keyboard driver 1.0\0" as *const u8 as *const std::ffi::c_char,
-            flags: 0 as std::ffi::c_int,
-            init: Some(
-                slang_init
-                    as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
-            uninit: Some(slang_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getkey: Some(
-                slang_getchar
-                    as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
+            flags: 0,
+            init: Some(slang_init),
+            uninit: Some(slang_uninit),
+            getkey: Some(slang_getchar),
         };
         init
     }

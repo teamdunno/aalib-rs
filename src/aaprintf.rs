@@ -45,8 +45,8 @@ pub struct aa_driver {
 
 pub fn aa_printf(
     mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
+    mut x: i64,
+    mut y: i64,
     mut attr: aa_attribute,
     mut fmt: *const std::ffi::c_char,
     mut args: String,

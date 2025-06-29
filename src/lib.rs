@@ -14,7 +14,6 @@ pub mod aacurrfnt;
 pub mod aacurses;
 pub mod aaedit;
 pub mod aafastre;
-pub mod aafire;
 pub mod aaflush;
 pub mod aafont;
 pub mod aafonts;
@@ -24,7 +23,6 @@ pub mod aaimage;
 pub mod aaimgheight;
 pub mod aaimgwidth;
 pub mod aain;
-pub mod aainfo;
 pub mod aakbdreg;
 pub mod aalib;
 pub mod aalinux;
@@ -43,7 +41,6 @@ pub mod aarecfunc;
 pub mod aaregist;
 pub mod aarender;
 pub mod aasave;
-pub mod aasavefont;
 pub mod aascrheight;
 pub mod aascrwidth;
 pub mod aaslang;
@@ -51,7 +48,6 @@ pub mod aaslnkbd;
 pub mod aastdin;
 pub mod aastdout;
 pub mod aastructs;
-pub mod aatest;
 pub mod aatext;
 pub mod aavyhen;
 pub mod aax;
@@ -70,7 +66,17 @@ pub mod fontx16;
 
 #[cfg(test)]
 mod tests {
-    use crate::aalib::aa_close;
+    use crate::{
+        aaimgheight::aa_imgheight,
+        aaimgwidth::aa_imgwidth,
+        aain::aa_getevent,
+        aakbdreg::aa_autoinitkbd,
+        aalib::aa_close,
+        aaout::aa_resizehandler,
+        aaparse::aa_parseoptions,
+        aaputpixel::aa_putpixel,
+        aarender::{aa_defrenderparams, aa_getrenderparams, aa_render, aa_renderpalette},
+    };
 
     use super::{
         aaflush::aa_flush,
@@ -84,39 +90,124 @@ mod tests {
     use std::{ffi::CString, thread, time::Duration};
 
     #[test]
+    fn tests() {
+        // avoid tests running at the same time
+        fill_pixels();
+        flashing_text();
+    }
+
     fn flashing_text() {
         let mut params: aa_hardware_params = unsafe { std::mem::zeroed() };
-        params.supported = (AA_NORMAL | AA_BOLD | AA_DIM) as i32;
+        params.supported = (AA_NORMAL | AA_BOLD | AA_DIM) as i64;
         let context = unsafe { aa_autoinit(&params) };
         let text = CString::new("hello, world :)").unwrap();
         let mut iters = 0;
         while iters < 5 {
-            unsafe {
-                aa_puts(
-                    context,
-                    (aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i32) / 2,
-                    aa_scrheight(context) / 2,
-                    AA_SPECIAL,
-                    text.as_ptr(),
-                );
-                aa_flush(context);
-            };
+            aa_puts(
+                context,
+                ((aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i64) / 2)
+                    .into(),
+                (aa_scrheight(context) / 2).into(),
+                AA_SPECIAL,
+                text.as_ptr(),
+            );
+            aa_flush(context);
             thread::sleep(Duration::from_millis(500));
-            unsafe {
-                aa_puts(
-                    context,
-                    (aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i32) / 2,
-                    aa_scrheight(context) / 2,
-                    AA_NORMAL,
-                    text.as_ptr(),
-                );
-                aa_flush(context);
-            }
+
+            aa_puts(
+                context,
+                (aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i64) / 2,
+                aa_scrheight(context) / 2,
+                AA_NORMAL,
+                text.as_ptr(),
+            );
+            aa_flush(context);
+
             thread::sleep(Duration::from_millis(500));
 
             iters += 1;
         }
 
-        unsafe { aa_close(context) };
+        aa_close(context);
+    }
+
+    fn fill_pixels() {
+        let mut params: aa_hardware_params = unsafe { std::mem::zeroed() };
+        params.supported = (AA_NORMAL | AA_BOLD | AA_DIM) as i64;
+        let context = aa_autoinit(&params);
+
+        let mut x = 0;
+        let mut y = 0;
+        let mut finished = false;
+        while !finished {
+            if x < aa_imgwidth(context) {
+                aa_putpixel(context, x, y, 255);
+                unsafe {
+                    aa_render(
+                        context,
+                        &aa_defrenderparams,
+                        0,
+                        0,
+                        aa_imgwidth(context),
+                        aa_imgheight(context),
+                    );
+                }
+                aa_flush(context);
+                x += 1;
+            } else {
+                y += 1;
+                x = 0;
+            }
+
+            if y == aa_imgheight(context) {
+                finished = true;
+            }
+        }
+
+        let mut x = 0;
+        let mut y = 0;
+        let mut finished = false;
+        while !finished {
+            if x < aa_imgwidth(context) {
+                aa_putpixel(context, x, y, 0);
+                unsafe {
+                    aa_render(
+                        context,
+                        &aa_defrenderparams,
+                        0,
+                        0,
+                        aa_imgwidth(context),
+                        aa_imgheight(context),
+                    );
+                }
+                aa_flush(context);
+                x += 1;
+            } else {
+                y += 1;
+                x = 0;
+            }
+
+            if y == aa_imgheight(context) {
+                finished = true;
+            }
+        }
+
+        let mut i = 5;
+        while i != -1 {
+            let text = CString::new(format!("closing in {i} seconds...")).unwrap();
+            thread::sleep(Duration::from_secs(1));
+            i -= 1;
+
+            aa_puts(
+                context,
+                (aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i64) / 2,
+                aa_scrheight(context) / 2,
+                AA_SPECIAL,
+                text.as_ptr(),
+            );
+            aa_flush(context);
+        }
+
+        aa_close(context);
     }
 }

@@ -1,3 +1,5 @@
+use std::ffi::CString;
+
 use super::aafonts::aa_registerfont;
 use super::aarec::{aa_kbdrecommended, aa_mouserecommended, aa_recommendlow};
 use super::aastructs::*;
@@ -11,8 +13,6 @@ unsafe extern "C" {
     fn fclose(__stream: *mut FILE) -> std::ffi::c_int;
     fn fflush(__stream: *mut FILE) -> std::ffi::c_int;
     fn fopen(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> *mut FILE;
-    fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
-    fn sprintf(_: *mut std::ffi::c_char, _: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
     fn putc(__c: std::ffi::c_int, __stream: *mut FILE) -> std::ffi::c_int;
     fn fread(
         _: *mut std::ffi::c_void,
@@ -34,8 +34,8 @@ unsafe extern "C" {
     fn fileno(__stream: *mut FILE) -> std::ffi::c_int;
     fn malloc(_: std::ffi::c_ulong) -> *mut std::ffi::c_void;
     fn ioctl(__fd: std::ffi::c_int, __request: std::ffi::c_ulong, _: ...) -> std::ffi::c_int;
-    static mut gpm_mx: std::ffi::c_int;
-    static mut gpm_my: std::ffi::c_int;
+    static mut gpm_mx: i32;
+    static mut gpm_my: i32;
     fn close(__fd: std::ffi::c_int) -> std::ffi::c_int;
     fn dup(__fd: std::ffi::c_int) -> std::ffi::c_int;
     fn open(__file: *const std::ffi::c_char, __oflag: std::ffi::c_int, _: ...) -> std::ffi::c_int;
@@ -134,38 +134,14 @@ pub static mut linux_d: aa_driver = unsafe {
         let mut init = aa_driver {
             shortname: b"linux\0" as *const u8 as *const std::ffi::c_char,
             name: b"Linux pc console driver 1.0\0" as *const u8 as *const std::ffi::c_char,
-            init: Some(
-                linux_init
-                    as unsafe extern "C" fn(
-                        *const aa_hardware_params,
-                        *const std::ffi::c_void,
-                        *mut aa_hardware_params,
-                        *mut *mut std::ffi::c_void,
-                    ) -> std::ffi::c_int,
-            ),
-            uninit: Some(linux_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getsize: Some(
-                linux_getsize
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        *mut std::ffi::c_int,
-                        *mut std::ffi::c_int,
-                    ) -> (),
-            ),
+            init: Some(linux_init),
+            uninit: Some(linux_uninit),
+            getsize: Some(linux_getsize),
             setattr: None,
             print: None,
-            gotoxy: Some(
-                linux_gotoxy
-                    as unsafe extern "C" fn(
-                        *mut aa_context,
-                        std::ffi::c_int,
-                        std::ffi::c_int,
-                    ) -> (),
-            ),
-            flush: Some(linux_flush as unsafe extern "C" fn(*mut aa_context) -> ()),
-            cursormode: Some(
-                linux_cursor as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> (),
-            ),
+            gotoxy: Some(linux_gotoxy),
+            flush: Some(linux_flush),
+            cursormode: Some(linux_cursor),
         };
         init
     }
@@ -187,30 +163,30 @@ pub struct C2RustUnnamed_0 {
     pub x: std::ffi::c_uchar,
     pub y: std::ffi::c_uchar,
 }
-static mut readonly: std::ffi::c_int = 1 as std::ffi::c_int;
-static mut cursorx: std::ffi::c_int = 0;
-static mut cursory: std::ffi::c_int = 0;
+static mut readonly: i64 = 1;
+static mut cursorx: i64 = 0;
+static mut cursory: i64 = 0;
 static mut vc: [*mut FILE; 10] = [0 as *const FILE as *mut FILE; 10];
-static mut nvcs: std::ffi::c_int = 0;
-static mut sizes: [[std::ffi::c_int; 10]; 2] = [[0; 10]; 2];
-static mut cursor_visible: std::ffi::c_int = 1 as std::ffi::c_int;
-unsafe extern "C" fn linux_cursor(mut c: *mut aa_context, mut mode: std::ffi::c_int) {
+static mut nvcs: i64 = 0;
+static mut sizes: [[i64; 10]; 2] = [[0; 10]; 2];
+static mut cursor_visible: i64 = 1;
+unsafe fn linux_cursor(mut c: *mut aa_context, mut mode: i64) {
     cursor_visible = mode;
     linux_gotoxy(c, cursorx, cursory);
     if mode != 0 {
-        printf(b"\x1B[?25h\0" as *const u8 as *const std::ffi::c_char);
+        println!("\x1B[?25h\0");
     } else {
-        printf(b"\x1B[?25l\0" as *const u8 as *const std::ffi::c_char);
+        println!("\x1B[?25l\0");
     }
     fflush(stdout);
 }
-unsafe extern "C" fn linux_init(
+unsafe fn linux_init(
     mut p: *const aa_hardware_params,
     mut none: *const std::ffi::c_void,
     mut dest: *mut aa_hardware_params,
     mut params: *mut *mut std::ffi::c_void,
-) -> std::ffi::c_int {
-    static mut registered: std::ffi::c_int = 0;
+) -> i64 {
+    static mut registered: i64 = 0;
     static mut font: aa_font = aa_font {
         data: 0 as *const std::ffi::c_uchar,
         height: 0,
@@ -220,11 +196,7 @@ unsafe extern "C" fn linux_init(
     static mut def: aa_hardware_params = {
         let mut init = aa_hardware_params {
             font: 0 as *const aa_font,
-            supported: 2 as std::ffi::c_int
-                | 16 as std::ffi::c_int
-                | 1 as std::ffi::c_int
-                | 4 as std::ffi::c_int
-                | (128 as std::ffi::c_int | 256 as std::ffi::c_int),
+            supported: 2 | 16 | 1 | 4 | (128 | 256),
             minwidth: 0,
             minheight: 0,
             maxwidth: 0,
@@ -266,15 +238,15 @@ unsafe extern "C" fn linux_init(
         },
         __glibc_reserved: [0; 3],
     };
-    let mut major: std::ffi::c_int = 0;
-    let mut minor: std::ffi::c_int = 0;
+    let mut major = 0;
+    let mut minor = 0;
     let mut fname: [std::ffi::c_char; 20] = [0; 20];
     let mut tmp: [std::ffi::c_char; 256] = [0; 256];
     let mut env: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
-    let mut vt: std::ffi::c_int = 0;
-    let mut i: std::ffi::c_int = 0;
-    let mut y: std::ffi::c_int = 0;
-    let mut fd: std::ffi::c_int = 0;
+    let mut vt = 0;
+    let mut i = 0;
+    let mut y = 0;
+    let mut fd = 0;
     *dest = def;
     fflush(stdout);
     fd = dup(fileno(stderr));
@@ -283,15 +255,15 @@ unsafe extern "C" fn linux_init(
     minor = (sbuf.st_rdev & 0xff as std::ffi::c_int as __dev_t) as std::ffi::c_int;
     vt = minor;
     close(fd);
-    if major != 4 as std::ffi::c_int || minor >= 64 as std::ffi::c_int {
-        return 0 as std::ffi::c_int;
+    if major != 4 || minor >= 64 as std::ffi::c_int {
+        return 0;
     }
-    readonly = 0 as std::ffi::c_int;
+    readonly = 0;
     env = getenv(b"AAVCS\0" as *const u8 as *const std::ffi::c_char);
     if !env.is_null() {
-        let mut p1: std::ffi::c_int = 0 as std::ffi::c_int;
-        let mut p2: std::ffi::c_int = 0;
-        nvcs = 0 as std::ffi::c_int;
+        let mut p1 = 0 as std::ffi::c_int;
+        let mut p2 = 0;
+        nvcs = 0;
         while *env.offset(p1 as isize) != 0 {
             while *env.offset(p1 as isize) as std::ffi::c_int != 0
                 && *env.offset(p1 as isize) as std::ffi::c_int == ' ' as i32
@@ -322,20 +294,20 @@ unsafe extern "C" fn linux_init(
                     tmp.as_mut_ptr(),
                     b"w\0" as *const u8 as *const std::ffi::c_char,
                 );
-                readonly = 1 as std::ffi::c_int;
+                readonly = 1;
             }
             if (vc[nvcs as usize]).is_null() {
-                return 0 as std::ffi::c_int;
+                return 0;
             }
             nvcs += 1;
             nvcs;
         }
     } else {
-        sprintf(
-            fname.as_mut_ptr(),
-            b"/dev/vcsa%i\0" as *const u8 as *const std::ffi::c_char,
-            vt,
-        );
+        let tmp_bind = CString::new(format!("/dv/vcsa{}", vt)).unwrap();
+        let bytes = tmp_bind.as_bytes_with_nul();
+        for (i, &b) in bytes.iter().enumerate().take(20) {
+            fname[i] = b as i8;
+        }
         vc[0 as std::ffi::c_int as usize] = fopen(
             fname.as_mut_ptr(),
             b"w+\0" as *const u8 as *const std::ffi::c_char,
@@ -345,20 +317,17 @@ unsafe extern "C" fn linux_init(
                 tmp.as_mut_ptr(),
                 b"w\0" as *const u8 as *const std::ffi::c_char,
             );
-            readonly = 1 as std::ffi::c_int;
+            readonly = 1;
         }
-        nvcs = 1 as std::ffi::c_int;
+        nvcs = 1;
     }
-    if (vc[0 as std::ffi::c_int as usize]).is_null() {
-        return 0 as std::ffi::c_int;
+    if (vc[0 as usize]).is_null() {
+        return 0;
     }
     if registered == 0 {
         let mut data: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
-        fd = open(
-            b"/dev/console\0" as *const u8 as *const std::ffi::c_char,
-            0 as std::ffi::c_int,
-        );
-        if fd >= 0 as std::ffi::c_int {
+        fd = open(b"/dev/console\0" as *const u8 as *const std::ffi::c_char, 0);
+        if fd >= 0 {
             let mut buf: [std::ffi::c_char; 32768] = [0; 32768];
             let mut desc: consolefontdesc = consolefontdesc {
                 charcount: 0,
@@ -366,30 +335,23 @@ unsafe extern "C" fn linux_init(
                 chardata: 0 as *mut std::ffi::c_char,
             };
             desc.chardata = buf.as_mut_ptr();
-            desc.charcount = 1024 as std::ffi::c_int as std::ffi::c_ushort;
-            i = ioctl(
-                fd,
-                0x4b6b as std::ffi::c_int as std::ffi::c_ulong,
-                &mut desc as *mut consolefontdesc,
-            );
+            desc.charcount = 1024;
+            i = ioctl(fd, 0x4b6b, &mut desc as *mut consolefontdesc);
             close(fd);
             if i != 0 {
                 (*dest).font = &aa_font14;
-                (*dest).supported &= !(2 as std::ffi::c_int);
+                (*dest).supported &= !(2);
             } else {
                 font.name = b"Font used by your console\0" as *const u8 as *const std::ffi::c_char;
                 font.shortname = b"current\0" as *const u8 as *const std::ffi::c_char;
-                font.height = desc.charheight as std::ffi::c_int;
-                data = malloc(
-                    (desc.charheight as std::ffi::c_int * 256 as std::ffi::c_int)
-                        as std::ffi::c_ulong,
-                ) as *mut std::ffi::c_char;
+                font.height = desc.charheight as i64;
+                data = malloc((desc.charheight * 256).into()) as *mut std::ffi::c_char;
                 font.data = data as *const std::ffi::c_uchar;
                 if !(font.data).is_null() {
-                    y = 0 as std::ffi::c_int;
-                    i = 0 as std::ffi::c_int;
-                    while i < 8192 as std::ffi::c_int {
-                        if (i % 32 as std::ffi::c_int) < font.height {
+                    y = 0;
+                    i = 0;
+                    while i < 8192 {
+                        if i64::from((i % 32)) < font.height {
                             *data.offset(y as isize) = *(desc.chardata).offset(i as isize);
                             y += 1;
                             y;
@@ -419,53 +381,45 @@ unsafe extern "C" fn linux_init(
         &mut aa_kbdrecommended,
         b"curses\0" as *const u8 as *const std::ffi::c_char,
     );
-    return 1 as std::ffi::c_int;
+    return 1;
 }
-unsafe extern "C" fn linux_uninit(mut c: *mut aa_context) {
-    let mut i: std::ffi::c_int = 0;
-    i = 0 as std::ffi::c_int;
+unsafe fn linux_uninit(mut c: *mut aa_context) {
+    let mut i = 0;
+    i = 0;
     while i < nvcs {
         fclose(vc[i as usize]);
         i += 1;
         i;
     }
 }
-unsafe extern "C" fn linux_getsize(
-    mut c: *mut aa_context,
-    mut width: *mut std::ffi::c_int,
-    mut height: *mut std::ffi::c_int,
-) {
-    let mut i: std::ffi::c_int = 0;
+unsafe fn linux_getsize(mut c: *mut aa_context, mut width: &mut i64, mut height: &mut i64) {
+    let mut i = 0;
     let mut scrn: C2RustUnnamed_0 = {
         let mut init = C2RustUnnamed_0 {
-            lines: 0 as std::ffi::c_int as std::ffi::c_uchar,
-            cols: 0 as std::ffi::c_int as std::ffi::c_uchar,
-            x: 0 as std::ffi::c_int as std::ffi::c_uchar,
-            y: 0 as std::ffi::c_int as std::ffi::c_uchar,
+            lines: 0 as std::ffi::c_uchar,
+            cols: 0 as std::ffi::c_uchar,
+            x: 0 as std::ffi::c_uchar,
+            y: 0 as std::ffi::c_uchar,
         };
         init
     };
-    *width = 0 as std::ffi::c_int;
-    *height = 65536 as std::ffi::c_int;
+    *width = 0;
+    *height = 65536;
     if readonly == 0 {
-        i = 0 as std::ffi::c_int;
+        i = 0;
         while i < nvcs {
-            fseek(
-                vc[i as usize],
-                0 as std::ffi::c_int as std::ffi::c_long,
-                0 as std::ffi::c_int,
-            );
+            fseek(vc[i as usize], 0, 0);
             fread(
                 &mut scrn as *mut C2RustUnnamed_0 as *mut std::ffi::c_void,
-                4 as std::ffi::c_int as std::ffi::c_ulong,
-                1 as std::ffi::c_int as std::ffi::c_ulong,
+                4,
+                1,
                 vc[i as usize],
             );
-            sizes[0 as std::ffi::c_int as usize][i as usize] = scrn.cols as std::ffi::c_int;
-            sizes[1 as std::ffi::c_int as usize][i as usize] = scrn.lines as std::ffi::c_int;
-            *width = *width + scrn.cols as std::ffi::c_int;
-            if *height > scrn.lines as std::ffi::c_int {
-                *height = scrn.lines as std::ffi::c_int;
+            sizes[0][i as usize] = scrn.cols as i64;
+            sizes[1][i as usize] = scrn.lines as i64;
+            *width = *width + scrn.cols as i64;
+            if *height > scrn.lines as i64 {
+                *height = scrn.lines as i64;
             }
             i += 1;
             i;
@@ -483,50 +437,44 @@ unsafe extern "C" fn linux_getsize(
             &mut ws as *mut winsize,
         ) == 0 as std::ffi::c_int
         {
-            *width = ws.ws_col as std::ffi::c_int * nvcs;
-            *height = ws.ws_row as std::ffi::c_int;
+            *width = ws.ws_col as i64 * nvcs;
+            *height = ws.ws_row as i64;
         } else {
-            *width = 80 as std::ffi::c_int;
-            *height = 25 as std::ffi::c_int;
+            *width = 80;
+            *height = 25;
         }
     }
-    gpm_mx = *width - 1 as std::ffi::c_int;
-    gpm_my = *height - 1 as std::ffi::c_int;
+    gpm_mx = (*width - 1) as i32;
+    gpm_my = (*height - 1) as i32;
 }
-unsafe extern "C" fn linux_flush(mut c: *mut aa_context) {
-    let mut i: std::ffi::c_int = 0;
-    let mut x: std::ffi::c_int = 0;
-    let mut y: std::ffi::c_int = 0;
-    let mut xstart: std::ffi::c_int = 0 as std::ffi::c_int;
-    let mut xend: std::ffi::c_int = 0;
-    let mut end: std::ffi::c_int = (*c).params.width * (*c).params.height;
+unsafe fn linux_flush(mut c: *mut aa_context) {
+    let mut i = 0;
+    let mut x = 0;
+    let mut y = 0;
+    let mut xstart = 0;
+    let mut xend = 0;
+    let mut end = (*c).params.width * (*c).params.height;
     let mut data: [std::ffi::c_uchar; 6] = [
-        0x7 as std::ffi::c_int as std::ffi::c_uchar,
-        0x8 as std::ffi::c_int as std::ffi::c_uchar,
-        0xf as std::ffi::c_int as std::ffi::c_uchar,
-        0xf as std::ffi::c_int as std::ffi::c_uchar,
-        0x70 as std::ffi::c_int as std::ffi::c_uchar,
-        0x17 as std::ffi::c_int as std::ffi::c_uchar,
+        0x7 as std::ffi::c_uchar,
+        0x8 as std::ffi::c_uchar,
+        0xf as std::ffi::c_uchar,
+        0xf as std::ffi::c_uchar,
+        0x70 as std::ffi::c_uchar,
+        0x17 as std::ffi::c_uchar,
     ];
-    i = 0 as std::ffi::c_int;
+    i = 0;
     while i < nvcs {
-        fseek(
-            vc[i as usize],
-            4 as std::ffi::c_int as std::ffi::c_long,
-            0 as std::ffi::c_int,
-        );
-        y = 0 as std::ffi::c_int;
+        fseek(vc[i as usize], 4, 0);
+        y = 0;
         while y < (*c).params.height {
-            let mut start: std::ffi::c_int = y * (*c).params.width;
+            let mut start = y * (*c).params.width;
             x = xstart;
-            while x < xstart + sizes[0 as std::ffi::c_int as usize][i as usize] {
+            while x < xstart + sizes[0][i as usize] {
                 putc(
                     *((*c).textbuffer).offset((x + start) as isize) as std::ffi::c_int,
                     vc[i as usize],
                 );
-                if (*((*c).attrbuffer).offset((x + start) as isize) as std::ffi::c_int)
-                    < 7 as std::ffi::c_int
-                {
+                if (*((*c).attrbuffer).offset((x + start) as isize)) < 7 {
                     putc(
                         data[*((*c).attrbuffer).offset((x + start) as isize) as usize]
                             as std::ffi::c_int,
@@ -541,19 +489,15 @@ unsafe extern "C" fn linux_flush(mut c: *mut aa_context) {
             y += 1;
             y;
         }
-        xstart += sizes[0 as std::ffi::c_int as usize][i as usize];
+        xstart += sizes[0][i as usize];
         fflush(vc[i as usize]);
         i += 1;
         i;
     }
 }
-unsafe extern "C" fn linux_gotoxy(
-    mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-) {
-    let mut n: std::ffi::c_int = 0 as std::ffi::c_int;
-    let mut i: std::ffi::c_int = 0;
+unsafe fn linux_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
+    let mut n = 0;
+    let mut i = 0;
     let mut scrn: C2RustUnnamed = C2RustUnnamed {
         lines: 0,
         cols: 0,
@@ -562,34 +506,28 @@ unsafe extern "C" fn linux_gotoxy(
     };
     cursorx = x;
     cursory = y;
-    i = 0 as std::ffi::c_int;
+    i = 0;
     while i < nvcs {
-        fseek(
-            vc[i as usize],
-            0 as std::ffi::c_int as std::ffi::c_long,
-            0 as std::ffi::c_int,
-        );
-        if x >= n && x < n + sizes[0 as std::ffi::c_int as usize][i as usize] && cursor_visible != 0
-        {
+        fseek(vc[i as usize], 0, 0);
+        if x >= n && x < n + sizes[0][i as usize] && cursor_visible != 0 {
             scrn.x = (x - n) as std::ffi::c_uchar;
             scrn.y = y as std::ffi::c_uchar;
-            scrn.lines = sizes[0 as std::ffi::c_int as usize][i as usize] as std::ffi::c_uchar;
-            scrn.cols = sizes[1 as std::ffi::c_int as usize][i as usize] as std::ffi::c_uchar;
+            scrn.lines = sizes[0][i as usize] as std::ffi::c_uchar;
+            scrn.cols = sizes[1][i as usize] as std::ffi::c_uchar;
         } else {
-            scrn.x = 0 as std::ffi::c_int as std::ffi::c_uchar;
-            scrn.y = 0 as std::ffi::c_int as std::ffi::c_uchar;
-            scrn.lines = sizes[0 as std::ffi::c_int as usize][i as usize] as std::ffi::c_uchar;
-            scrn.cols = sizes[1 as std::ffi::c_int as usize][i as usize] as std::ffi::c_uchar;
+            scrn.x = 0 as std::ffi::c_uchar;
+            scrn.y = 0 as std::ffi::c_uchar;
+            scrn.lines = sizes[0][i as usize] as std::ffi::c_uchar;
+            scrn.cols = sizes[1][i as usize] as std::ffi::c_uchar;
         }
         fwrite(
             &mut scrn as *mut C2RustUnnamed as *const std::ffi::c_void,
-            4 as std::ffi::c_int as std::ffi::c_ulong,
-            1 as std::ffi::c_int as std::ffi::c_ulong,
+            4,
+            1,
             vc[i as usize],
         );
-        n += sizes[0 as std::ffi::c_int as usize][i as usize];
+        n += sizes[0][i as usize];
         i += 1;
-        i;
     }
     fflush(vc[i as usize]);
 }

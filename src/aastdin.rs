@@ -1,7 +1,10 @@
+use super::aagpm::__curses_usegpm;
+use super::aarec::aa_mouserecommended;
 use super::aarec::aa_recommendlow;
 use super::aastructs::*;
 use ::c2rust_bitfields;
 use ::libc;
+
 unsafe extern "C" {
     static mut stdin: *mut FILE;
     fn getc(__stream: *mut FILE) -> std::ffi::c_int;
@@ -18,8 +21,6 @@ unsafe extern "C" {
     ) -> std::ffi::c_int;
     static mut gpm_fd: std::ffi::c_int;
     fn Gpm_Getc(_: *mut FILE) -> std::ffi::c_int;
-    static mut aa_mouserecommended: *mut aa_linkedlist;
-    static mut __curses_usegpm: std::ffi::c_int;
 }
 pub type __off_t = std::ffi::c_long;
 pub type __off64_t = std::ffi::c_long;
@@ -108,10 +109,7 @@ unsafe extern "C" fn handler(mut i: std::ffi::c_int) {
         longjmp(buf.as_mut_ptr(), 1 as std::ffi::c_int);
     }
 }
-unsafe extern "C" fn stdin_init(
-    mut context: *mut aa_context,
-    mut mode: std::ffi::c_int,
-) -> std::ffi::c_int {
+unsafe fn stdin_init(mut context: *mut aa_context, mut mode: i64) -> i64 {
     signal(
         28 as std::ffi::c_int,
         Some(handler as unsafe extern "C" fn(std::ffi::c_int) -> ()),
@@ -120,9 +118,9 @@ unsafe extern "C" fn stdin_init(
         &mut aa_mouserecommended,
         b"gpm\0" as *const u8 as *const std::ffi::c_char,
     );
-    return 1 as std::ffi::c_int;
+    return 1;
 }
-unsafe extern "C" fn stdin_uninit(mut c: *mut aa_context) {
+unsafe fn stdin_uninit(mut c: *mut aa_context) {
     signal(
         28 as std::ffi::c_int,
         ::core::mem::transmute::<libc::intptr_t, __sighandler_t>(
@@ -130,10 +128,7 @@ unsafe extern "C" fn stdin_uninit(mut c: *mut aa_context) {
         ),
     );
 }
-unsafe extern "C" fn stdin_getchar(
-    mut c1: *mut aa_context,
-    mut wait: std::ffi::c_int,
-) -> std::ffi::c_int {
+unsafe fn stdin_getchar(mut c1: *mut aa_context, mut wait: i64) -> i64 {
     let mut c: std::ffi::c_int = 0;
     let mut flag: std::ffi::c_int = 0;
     let mut tv: timeval = timeval {
@@ -146,7 +141,7 @@ unsafe extern "C" fn stdin_getchar(
     }
     if __resized == 2 as std::ffi::c_int {
         __resized = 1 as std::ffi::c_int;
-        return 258 as std::ffi::c_int;
+        return 258;
     }
     if wait == 0 {
         let mut readfds: fd_set = fd_set {
@@ -191,7 +186,7 @@ unsafe extern "C" fn stdin_getchar(
             &mut tv,
         );
         if flag == 0 {
-            return AA_NONE as std::ffi::c_int;
+            return AA_NONE.try_into().unwrap();
         }
     }
     if __curses_usegpm != 0 {
@@ -201,39 +196,34 @@ unsafe extern "C" fn stdin_getchar(
     }
     iswaiting = 0 as std::ffi::c_int;
     if c == 27 as std::ffi::c_int {
-        return 305 as std::ffi::c_int;
+        return 305;
     }
     if c == 10 as std::ffi::c_int {
-        return 13 as std::ffi::c_int;
+        return 13;
     }
     if c > 0 as std::ffi::c_int && c < 127 as std::ffi::c_int && c != 127 as std::ffi::c_int {
-        return c;
+        return c.try_into().unwrap();
     }
     match c {
-        127 => return 304 as std::ffi::c_int,
+        127 => return 304,
         _ => {}
     }
     if feof(stdin) != 0 {
-        return AA_NONE as std::ffi::c_int;
+        return AA_NONE.try_into().unwrap();
     }
-    return 400 as std::ffi::c_int;
+    return 400;
 }
 
+#[unsafe(no_mangle)]
 pub static mut kbd_stdin_d: aa_kbddriver = unsafe {
     {
         let mut init = aa_kbddriver {
             shortname: b"stdin\0" as *const u8 as *const std::ffi::c_char,
             name: b"Standard input keyboard driver 1.0\0" as *const u8 as *const std::ffi::c_char,
-            flags: 0 as std::ffi::c_int,
-            init: Some(
-                stdin_init
-                    as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
-            uninit: Some(stdin_uninit as unsafe extern "C" fn(*mut aa_context) -> ()),
-            getkey: Some(
-                stdin_getchar
-                    as unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int,
-            ),
+            flags: 0,
+            init: Some(stdin_init),
+            uninit: Some(stdin_uninit),
+            getkey: Some(stdin_getchar),
         };
         init
     }

@@ -66,6 +66,8 @@ pub struct aa_kbddriver {
     pub getkey: Option<unsafe extern "C" fn(*mut aa_context, std::ffi::c_int) -> std::ffi::c_int>,
 }
 
-pub unsafe extern "C" fn aa_imgwidth(mut a: *mut aa_context) -> std::ffi::c_int {
-    return (*a).imgwidth;
+pub fn aa_imgwidth(mut a: *mut aa_context) -> i64 {
+    unsafe {
+        return (*a).imgwidth;
+    }
 }

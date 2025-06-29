@@ -35,180 +35,187 @@ pub const AA_BOLDFONT: aa_attribute = 3;
 pub const AA_BOLD: aa_attribute = 2;
 pub const AA_DIM: aa_attribute = 1;
 pub const AA_NORMAL: aa_attribute = 0;
-unsafe extern "C" fn aa_editdisplay(mut e: *mut aa_edit) {
-    let mut s: [std::ffi::c_char; 1000] = [0; 1000];
-    let mut i: std::ffi::c_int = 0;
-    if (*e).cursor > strlen((*e).data) as std::ffi::c_int {
-        (*e).cursor = strlen((*e).data) as std::ffi::c_int;
+fn aa_editdisplay(mut e: *mut aa_edit) {
+    unsafe {
+        let mut s: [std::ffi::c_char; 1000] = [0; 1000];
+        let mut i: std::ffi::c_int = 0;
+        if (*e).cursor > strlen((*e).data) as i64 {
+            (*e).cursor = strlen((*e).data) as i64;
+        }
+        if (*e).cursor < (*e).printpos {
+            (*e).printpos = (*e).cursor;
+        }
+        if (*e).cursor >= (*e).printpos + (*e).size {
+            (*e).printpos = (*e).cursor - (*e).size;
+        }
+        if (*e).printpos < 0 {
+            (*e).printpos = 0;
+        }
+        strncpy(
+            s.as_mut_ptr(),
+            ((*e).data).offset((*e).printpos as isize),
+            (*e).size as std::ffi::c_ulong,
+        );
+        s[(*e).size as usize] = 0 as std::ffi::c_int as std::ffi::c_char;
+        i = (strlen((*e).data)).wrapping_sub((*e).printpos as std::ffi::c_ulong) as std::ffi::c_int;
+        while (i as i64) < (*e).size {
+            s[i as usize] = ' ' as i32 as std::ffi::c_char;
+            i += 1;
+        }
+        aa_puts(
+            (*e).c,
+            (*e).x as i64,
+            (*e).y as i64,
+            (if (*e).clearafterpress != 0 {
+                AA_REVERSE as std::ffi::c_int
+            } else {
+                AA_SPECIAL as std::ffi::c_int
+            }) as aa_attribute,
+            s.as_mut_ptr(),
+        );
+        aa_gotoxy((*e).c, (*e).x + (*e).cursor - (*e).printpos, (*e).y);
     }
-    if (*e).cursor < (*e).printpos {
-        (*e).printpos = (*e).cursor;
-    }
-    if (*e).cursor >= (*e).printpos + (*e).size {
-        (*e).printpos = (*e).cursor - (*e).size;
-    }
-    if (*e).printpos < 0 as std::ffi::c_int {
-        (*e).printpos = 0 as std::ffi::c_int;
-    }
-    strncpy(
-        s.as_mut_ptr(),
-        ((*e).data).offset((*e).printpos as isize),
-        (*e).size as std::ffi::c_ulong,
-    );
-    s[(*e).size as usize] = 0 as std::ffi::c_int as std::ffi::c_char;
-    i = (strlen((*e).data)).wrapping_sub((*e).printpos as std::ffi::c_ulong) as std::ffi::c_int;
-    while i < (*e).size {
-        s[i as usize] = ' ' as i32 as std::ffi::c_char;
-        i += 1;
-        i;
-    }
-    aa_puts(
-        (*e).c,
-        (*e).x,
-        (*e).y,
-        (if (*e).clearafterpress != 0 {
-            AA_REVERSE as std::ffi::c_int
-        } else {
-            AA_SPECIAL as std::ffi::c_int
-        }) as aa_attribute,
-        s.as_mut_ptr(),
-    );
-    aa_gotoxy((*e).c, (*e).x + (*e).cursor - (*e).printpos, (*e).y);
 }
 
-pub unsafe extern "C" fn aa_createedit(
+pub fn aa_createedit(
     mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-    mut size: std::ffi::c_int,
+    mut x: &mut i32,
+    mut y: &mut i32,
+    mut size: &mut i32,
     mut s: *mut std::ffi::c_char,
-    mut maxsize: std::ffi::c_int,
+    mut maxsize: &mut i32,
 ) -> *mut aa_edit {
-    let mut e: *mut aa_edit = 0 as *mut aa_edit;
-    if x < 0 as std::ffi::c_int {
-        x = 0 as std::ffi::c_int;
-    }
-    if y < 0 as std::ffi::c_int {
-        y = 0 as std::ffi::c_int;
-    }
-    if x >= (*c).imgwidth - 1 as std::ffi::c_int {
-        x = (*c).imgwidth - 2 as std::ffi::c_int;
-    }
-    if y >= (*c).imgheight - 1 as std::ffi::c_int {
-        y = (*c).imgwidth - 2 as std::ffi::c_int;
-    }
-    if x + size >= (*c).imgwidth {
-        size = (*c).imgwidth - 1 as std::ffi::c_int - x;
-    }
-    e = malloc(::core::mem::size_of::<aa_edit>() as std::ffi::c_ulong) as *mut aa_edit;
-    if e.is_null() {
-        return 0 as *mut aa_edit;
-    }
-    (*e).maxsize = maxsize;
-    (*e).data = s;
-    (*e).cursor = strlen(s) as std::ffi::c_int;
-    (*e).clearafterpress = 1 as std::ffi::c_int;
-    (*e).x = x;
-    (*e).y = y;
-    (*e).size = size;
-    (*e).c = c;
-    (*e).printpos = 0 as std::ffi::c_int;
-    aa_editdisplay(e);
-    return e;
-}
-unsafe extern "C" fn aa_insert(mut e: *mut aa_edit, mut ch: std::ffi::c_char) {
-    let mut i: std::ffi::c_int = 0;
-    let mut s: std::ffi::c_int = strlen((*e).data) as std::ffi::c_int;
-    if s == (*e).maxsize - 1 as std::ffi::c_int {
-        return;
-    }
-    i = s;
-    while i >= (*e).cursor {
-        *((*e).data).offset((i + 1 as std::ffi::c_int) as isize) = *((*e).data).offset(i as isize);
-        i -= 1;
-        i;
-    }
-    *((*e).data).offset((s + 1 as std::ffi::c_int) as isize) =
-        0 as std::ffi::c_int as std::ffi::c_char;
-    *((*e).data).offset((*e).cursor as isize) = ch;
-    (*e).cursor += 1;
-    (*e).cursor;
-}
-unsafe extern "C" fn aa_delete(mut e: *mut aa_edit) {
-    let mut i: std::ffi::c_int = 0;
-    let mut s: std::ffi::c_int = strlen((*e).data) as std::ffi::c_int;
-    if (*e).cursor == 0 as std::ffi::c_int {
-        return;
-    }
-    (*e).cursor -= 1;
-    (*e).cursor;
-    i = (*e).cursor;
-    while i <= s {
-        *((*e).data).offset(i as isize) = *((*e).data).offset((i + 1 as std::ffi::c_int) as isize);
-        i += 1;
-        i;
-    }
-}
-
-pub unsafe extern "C" fn aa_editkey(mut e: *mut aa_edit, mut c: std::ffi::c_int) {
-    if c < 127 as std::ffi::c_int
-        && (*(*__ctype_b_loc()).offset(c as isize) as std::ffi::c_int
-            & _ISgraph as std::ffi::c_int as std::ffi::c_ushort as std::ffi::c_int
-            != 0
-            || c == ' ' as i32)
-    {
-        if (*e).clearafterpress != 0 {
-            *((*e).data).offset(0 as std::ffi::c_int as isize) =
-                0 as std::ffi::c_int as std::ffi::c_char;
-            (*e).cursor = 0 as std::ffi::c_int;
+    unsafe {
+        let mut e: *mut aa_edit = 0 as *mut aa_edit;
+        if *x < 0 {
+            *x = 0;
         }
-        (*e).clearafterpress = 0 as std::ffi::c_int;
-        aa_insert(e, c as std::ffi::c_char);
-        aa_editdisplay(e);
-    } else if c == 304 as std::ffi::c_int {
-        (*e).clearafterpress = 0 as std::ffi::c_int;
-        aa_delete(e);
-        aa_editdisplay(e);
-    } else if c == 302 as std::ffi::c_int {
-        (*e).cursor -= 1;
-        (*e).cursor;
-        (*e).clearafterpress = 0 as std::ffi::c_int;
-        if (*e).cursor < 0 as std::ffi::c_int {
-            (*e).cursor = 0 as std::ffi::c_int;
+        if *y < 0 {
+            *y = 0;
         }
+        if *x >= ((*c).imgwidth - 1) as i32 {
+            *x = ((*c).imgwidth - 2) as i32;
+        }
+        if *y >= ((*c).imgheight - 1) as i32 {
+            *y = ((*c).imgwidth - 2) as i32;
+        }
+        if (*x + *size) as i64 >= (*c).imgwidth {
+            *size = ((*c).imgwidth - 1 - (*x as i64)) as i32;
+        }
+        e = malloc(::core::mem::size_of::<aa_edit>() as std::ffi::c_ulong) as *mut aa_edit;
+        if e.is_null() {
+            return 0 as *mut aa_edit;
+        }
+        (*e).maxsize = (*maxsize as i64);
+        (*e).data = s;
+        (*e).cursor = strlen(s) as i64;
+        (*e).clearafterpress = 1;
+        (*e).x = *x as i64;
+        (*e).y = *y as i64;
+        (*e).size = *size as i64;
+        (*e).c = c;
+        (*e).printpos = 0;
         aa_editdisplay(e);
-    } else if c == 303 as std::ffi::c_int {
+        return e;
+    }
+}
+fn aa_insert(mut e: *mut aa_edit, mut ch: std::ffi::c_char) {
+    unsafe {
+        let mut i: i64 = 0;
+        let mut s: i64 = strlen((*e).data) as i64;
+        if s == (*e).maxsize - 1 {
+            return;
+        }
+        i = s;
+        while i >= (*e).cursor {
+            *((*e).data).offset((i + 1) as isize) = *((*e).data).offset(i as isize);
+            i -= 1;
+            i;
+        }
+        *((*e).data).offset((s + 1) as isize) = 0 as std::ffi::c_int as std::ffi::c_char;
+        *((*e).data).offset((*e).cursor as isize) = ch;
         (*e).cursor += 1;
         (*e).cursor;
-        (*e).clearafterpress = 0 as std::ffi::c_int;
-        if (*e).cursor > strlen((*e).data) as std::ffi::c_int {
-            (*e).cursor = strlen((*e).data) as std::ffi::c_int;
-        }
-        aa_editdisplay(e);
     }
-    aa_flush((*e).c);
+}
+fn aa_delete(mut e: *mut aa_edit) {
+    unsafe {
+        let mut i = 0;
+        let mut s = strlen((*e).data) as i64;
+        if (*e).cursor == 0 {
+            return;
+        }
+        (*e).cursor -= 1;
+        (*e).cursor;
+        i = (*e).cursor;
+        while i <= s {
+            *((*e).data).offset(i as isize) = *((*e).data).offset((i + 1) as isize);
+            i += 1;
+            i;
+        }
+    }
 }
 
-pub unsafe extern "C" fn aa_edit(
-    mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-    mut size: std::ffi::c_int,
-    mut s: *mut std::ffi::c_char,
-    mut maxsize: std::ffi::c_int,
-) {
-    let mut e: *mut aa_edit = 0 as *mut aa_edit;
-    let mut ch: std::ffi::c_int = 0;
-    aa_showcursor(c);
-    e = aa_createedit(c, x, y, size, s, maxsize);
-    aa_flush(c);
-    loop {
-        ch = aa_getkey(c, 1 as std::ffi::c_int);
-        if !(ch != 13 as std::ffi::c_int && ch != '\n' as i32) {
-            break;
+pub fn aa_editkey(mut e: *mut aa_edit, mut c: i64) {
+    unsafe {
+        if c < 127
+            && (*(*__ctype_b_loc()).offset(c as isize) as u32 & _ISgraph as u32 != 0
+                || c == ' ' as i64)
+        {
+            if (*e).clearafterpress != 0 {
+                *((*e).data).offset(0 as isize) = 0 as std::ffi::c_char;
+                (*e).cursor = 0;
+            }
+            (*e).clearafterpress = 0;
+            aa_insert(e, c as std::ffi::c_char);
+            aa_editdisplay(e);
+        } else if c == 304 {
+            (*e).clearafterpress = 0;
+            aa_delete(e);
+            aa_editdisplay(e);
+        } else if c == 302 {
+            (*e).cursor -= 1;
+            (*e).cursor;
+            (*e).clearafterpress = 0;
+            if (*e).cursor < 0 {
+                (*e).cursor = 0;
+            }
+            aa_editdisplay(e);
+        } else if c == 303 {
+            (*e).cursor += 1;
+            (*e).cursor;
+            (*e).clearafterpress = 0;
+            if (*e).cursor > strlen((*e).data) as _ {
+                (*e).cursor = strlen((*e).data) as _;
+            }
+            aa_editdisplay(e);
         }
-        aa_editkey(e, ch);
+        aa_flush((*e).c);
     }
-    aa_hidecursor(c);
-    free(e as *mut std::ffi::c_void);
+}
+
+pub fn aa_edit(
+    mut c: *mut aa_context,
+    mut x: i32,
+    mut y: i32,
+    mut size: i32,
+    mut s: *mut std::ffi::c_char,
+    mut maxsize: i32,
+) {
+    unsafe {
+        let mut e: *mut aa_edit = 0 as *mut aa_edit;
+        let mut ch = 0;
+        aa_showcursor(c);
+        e = aa_createedit(c, &mut x, &mut y, &mut size, s, &mut maxsize);
+        aa_flush(c);
+        loop {
+            ch = aa_getkey(c, 1);
+            if !(ch != 13 && ch != '\n' as i64) {
+                break;
+            }
+            aa_editkey(e, ch);
+        }
+        aa_hidecursor(c);
+        free(e as *mut std::ffi::c_void);
+    }
 }

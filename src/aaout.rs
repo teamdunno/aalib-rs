@@ -8,94 +8,94 @@ pub const AA_BOLD: aa_attribute = 2;
 pub const AA_DIM: aa_attribute = 1;
 pub const AA_NORMAL: aa_attribute = 0;
 
-pub unsafe extern "C" fn aa_puts(
+pub fn aa_puts(
     mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
+    mut x: i64,
+    mut y: i64,
     mut attr: aa_attribute,
     mut s: *const std::ffi::c_char,
 ) {
-    let mut s1: [std::ffi::c_char; 10000] = [0; 10000];
-    let mut pos: std::ffi::c_int = 0;
-    let mut pos1: std::ffi::c_int = 0;
-    let mut x1: std::ffi::c_int = 0;
-    let mut y1: std::ffi::c_int = 0;
-    if x < 0 as std::ffi::c_int
-        || y < 0 as std::ffi::c_int
-        || x >= (*c).params.width
-        || y >= (*c).params.height
-    {
-        return;
-    }
-    x1 = x;
-    y1 = y;
-    pos = 0 as std::ffi::c_int;
-    while *s.offset(pos as isize) as std::ffi::c_int != 0 as std::ffi::c_int
-        && pos < 10000 as std::ffi::c_int
-    {
-        s1[pos as usize] = *s.offset(pos as isize);
-        pos1 = x1 + y1 * (*c).params.width;
-        *((*c).textbuffer).offset(pos1 as isize) = *s.offset(pos as isize) as std::ffi::c_uchar;
-        *((*c).attrbuffer).offset(pos1 as isize) = attr as std::ffi::c_uchar;
-        x1 += 1;
-        x1;
-        if x1 >= (*c).params.width {
-            x1 = 0 as std::ffi::c_int;
-            y1 += 1;
-            y1;
-            if y1 >= (*c).params.height {
-                break;
+    unsafe {
+        let mut s1: [std::ffi::c_char; 10000] = [0; 10000];
+        let mut pos = 0;
+        let mut pos1 = 0;
+        let mut x1 = 0;
+        let mut y1 = 0;
+        if x < 0 || y < 0 || x >= (*c).params.width || y >= (*c).params.height {
+            return;
+        }
+        x1 = x;
+        y1 = y;
+        pos = 0 as std::ffi::c_int;
+        while *s.offset(pos as isize) as std::ffi::c_int != 0 as std::ffi::c_int
+            && pos < 10000 as std::ffi::c_int
+        {
+            s1[pos as usize] = *s.offset(pos as isize);
+            pos1 = x1 + y1 * (*c).params.width;
+            *((*c).textbuffer).offset(pos1 as isize) = *s.offset(pos as isize) as std::ffi::c_uchar;
+            *((*c).attrbuffer).offset(pos1 as isize) = attr as std::ffi::c_uchar;
+            x1 += 1;
+            if x1 >= (*c).params.width {
+                x1 = 0;
+                y1 += 1;
+                if y1 >= (*c).params.height {
+                    break;
+                }
             }
+            pos += 1;
+            pos;
         }
-        pos += 1;
-        pos;
     }
 }
 
-pub unsafe extern "C" fn aa_resizehandler(
+pub fn aa_resizehandler(
     mut c: *mut aa_context,
-    mut handler: Option<unsafe extern "C" fn(*mut aa_context) -> ()>,
+    mut handler: Option<unsafe fn(*mut aa_context) -> ()>,
 ) {
-    (*c).resizehandler = handler;
-}
-
-pub unsafe extern "C" fn aa_hidecursor(mut c: *mut aa_context) {
-    (*c).cursorstate -= 1;
-    (*c).cursorstate;
-    if (*c).cursorstate == -(1 as std::ffi::c_int) && ((*(*c).driver).cursormode).is_some() {
-        ((*(*c).driver).cursormode).expect("non-null function pointer")(c, 0 as std::ffi::c_int);
+    unsafe {
+        (*c).resizehandler = handler;
     }
 }
 
-pub unsafe extern "C" fn aa_showcursor(mut c: *mut aa_context) {
-    (*c).cursorstate += 1;
-    (*c).cursorstate;
-    if (*c).cursorstate == 0 as std::ffi::c_int && ((*(*c).driver).cursormode).is_some() {
-        ((*(*c).driver).cursormode).expect("non-null function pointer")(c, 1 as std::ffi::c_int);
+pub fn aa_hidecursor(mut c: *mut aa_context) {
+    unsafe {
+        (*c).cursorstate -= 1;
+        (*c).cursorstate;
+        if (*c).cursorstate == -(1) && ((*(*c).driver).cursormode).is_some() {
+            ((*(*c).driver).cursormode).expect("non-null function pointer")(c, 0);
+        }
     }
-    aa_gotoxy(c, (*c).cursorx, (*c).cursory);
 }
 
-pub unsafe extern "C" fn aa_gotoxy(
-    mut c: *mut aa_context,
-    mut x: std::ffi::c_int,
-    mut y: std::ffi::c_int,
-) {
-    if (*c).cursorstate >= 0 as std::ffi::c_int {
-        if x < 0 as std::ffi::c_int {
-            x = 0 as std::ffi::c_int;
+pub fn aa_showcursor(mut c: *mut aa_context) {
+    unsafe {
+        (*c).cursorstate += 1;
+        (*c).cursorstate;
+        if (*c).cursorstate == 0 && ((*(*c).driver).cursormode).is_some() {
+            ((*(*c).driver).cursormode).expect("non-null function pointer")(c, 1);
         }
-        if y < 0 as std::ffi::c_int {
-            y = 0 as std::ffi::c_int;
+        aa_gotoxy(c, (*c).cursorx, (*c).cursory);
+    }
+}
+
+pub fn aa_gotoxy(mut c: *mut aa_context, mut x: i64, mut y: i64) {
+    unsafe {
+        if (*c).cursorstate >= 0 {
+            if x < 0 {
+                x = 0;
+            }
+            if y < 0 {
+                y = 0;
+            }
+            if x >= (*c).params.width {
+                x = (*c).params.width - 1;
+            }
+            if y >= (*c).params.height {
+                y = (*c).params.height - 1;
+            }
+            ((*(*c).driver).gotoxy).expect("non-null function pointer")(c, x, y);
+            (*c).cursorx = x;
+            (*c).cursory = y;
         }
-        if x >= (*c).params.width {
-            x = (*c).params.width - 1 as std::ffi::c_int;
-        }
-        if y >= (*c).params.height {
-            y = (*c).params.height - 1 as std::ffi::c_int;
-        }
-        ((*(*c).driver).gotoxy).expect("non-null function pointer")(c, x, y);
-        (*c).cursorx = x;
-        (*c).cursory = y;
     }
 }

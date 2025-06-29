@@ -4103,7 +4103,7 @@ pub static mut aa_font16: aa_font = unsafe {
     {
         let mut init = aa_font {
             data: font16data.as_ptr(),
-            height: 16 as std::ffi::c_int,
+            height: 16,
             name: b"Standard vga 8x16 font\0" as *const u8 as *const std::ffi::c_char,
             shortname: b"vga16\0" as *const u8 as *const std::ffi::c_char,
         };
