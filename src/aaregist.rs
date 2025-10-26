@@ -12,9 +12,8 @@ unsafe extern "C" {
     static X11_d: aa_driver;
     fn strcmp(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> std::ffi::c_int;
 }
-pub static mut aa_drivers: [*const aa_driver; 6] = unsafe {
+pub static mut aa_drivers: [*const aa_driver; 5] = unsafe {
     [
-        &X11_d as *const aa_driver,
         &linux_d as *const aa_driver,
         &slang_d as *const aa_driver,
         &stdout_d as *const aa_driver,

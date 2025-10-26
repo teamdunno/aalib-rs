@@ -10,5 +10,3 @@ crate-type = ["rlib"]
 [dependencies]
 c2rust-bitfields= "0.3"
 libc= "0.2"
-wrflib_x11_sys = "0.0.3"
-x11-dl = "2.21.0"
