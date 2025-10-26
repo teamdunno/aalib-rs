@@ -15,25 +15,24 @@ pub static mut aa_mouserecommended: *mut aa_linkedlist =
 
 pub static mut aa_displayrecommended: *mut aa_linkedlist =
     0 as *const aa_linkedlist as *mut aa_linkedlist;
-unsafe fn aa_find(
-    l: *mut aa_linkedlist,
-    text: *const std::ffi::c_char,
-) -> *mut aa_linkedlist { unsafe {
-    let mut m: *mut aa_linkedlist = l;
-    if l.is_null() {
+unsafe fn aa_find(l: *mut aa_linkedlist, text: *const std::ffi::c_char) -> *mut aa_linkedlist {
+    unsafe {
+        let mut m: *mut aa_linkedlist = l;
+        if l.is_null() {
+            return 0 as *mut aa_linkedlist;
+        }
+        loop {
+            if strcmp((*m).text, text) == 0 {
+                return m;
+            }
+            m = (*m).next;
+            if !(l != m) {
+                break;
+            }
+        }
         return 0 as *mut aa_linkedlist;
     }
-    loop {
-        if strcmp((*m).text, text) == 0 {
-            return m;
-        }
-        m = (*m).next;
-        if !(l != m) {
-            break;
-        }
-    }
-    return 0 as *mut aa_linkedlist;
-}}
+}
 
 pub fn aa_recommendhi(l: *mut *mut aa_linkedlist, name: *const std::ffi::c_char) {
     unsafe {

@@ -47,53 +47,58 @@ unsafe fn stdout_init(
     none: *const std::ffi::c_void,
     dest: *mut aa_hardware_params,
     n: *mut *mut std::ffi::c_void,
-) -> i64 { unsafe {
-    static mut def: aa_hardware_params = {
-        let init = aa_hardware_params {
-            font: 0 as *const aa_font,
-            supported: 1 | (128 | 256),
-            minwidth: 0,
-            minheight: 0,
-            maxwidth: 0,
-            maxheight: 0,
-            recwidth: 0,
-            recheight: 0,
-            mmwidth: 0,
-            mmheight: 0,
-            width: 0,
-            height: 0,
-            dimmul: 0.,
-            boldmul: 0.,
+) -> i64 {
+    unsafe {
+        static mut def: aa_hardware_params = {
+            let init = aa_hardware_params {
+                font: 0 as *const aa_font,
+                supported: 1 | (128 | 256),
+                minwidth: 0,
+                minheight: 0,
+                maxwidth: 0,
+                maxheight: 0,
+                recwidth: 0,
+                recheight: 0,
+                mmwidth: 0,
+                mmheight: 0,
+                width: 0,
+                height: 0,
+                dimmul: 0.,
+                boldmul: 0.,
+            };
+            init
         };
-        init
-    };
-    *dest = def;
-    return 1;
-}}
+        *dest = def;
+        return 1;
+    }
+}
 unsafe fn stdout_uninit(_: *mut aa_context) {}
 unsafe fn stdout_getsize(_: *mut aa_context, _: &mut i64, _: &mut i64) {}
-unsafe fn stdout_flush(c: *mut aa_context) { unsafe {
-    let mut x = 0;
-    let mut y = 0;
-    y = 0;
-    while y < (*c).params.height {
-        x = 0;
-        while x < (*c).params.width {
-            putc(
-                *((*c).textbuffer).offset((x + y * (*c).params.width) as isize) as std::ffi::c_int,
-                stdout,
-            );
-            x += 1;
-            x;
+unsafe fn stdout_flush(c: *mut aa_context) {
+    unsafe {
+        let mut x = 0;
+        let mut y = 0;
+        y = 0;
+        while y < (*c).params.height {
+            x = 0;
+            while x < (*c).params.width {
+                putc(
+                    *((*c).textbuffer).offset((x + y * (*c).params.width) as isize)
+                        as std::ffi::c_int,
+                    stdout,
+                );
+                x += 1;
+                x;
+            }
+            putc('\n' as i32, stdout);
+            y += 1;
+            y;
         }
+        putc('\u{c}' as i32, stdout);
         putc('\n' as i32, stdout);
-        y += 1;
-        y;
+        fflush(stdout);
     }
-    putc('\u{c}' as i32, stdout);
-    putc('\n' as i32, stdout);
-    fflush(stdout);
-}}
+}
 unsafe fn stdout_gotoxy(_: *mut aa_context, _: i64, _: i64) {}
 
 #[unsafe(no_mangle)]
@@ -114,28 +119,31 @@ pub static mut stdout_d: aa_driver = unsafe {
         init
     }
 };
-unsafe fn stderr_flush(c: *mut aa_context) { unsafe {
-    let mut x = 0;
-    let mut y = 0;
-    y = 0;
-    while y < (*c).params.height {
-        x = 0;
-        while x < (*c).params.width {
-            putc(
-                *((*c).textbuffer).offset((x + y * (*c).params.width) as isize) as std::ffi::c_int,
-                stderr,
-            );
-            x += 1;
-            x;
+unsafe fn stderr_flush(c: *mut aa_context) {
+    unsafe {
+        let mut x = 0;
+        let mut y = 0;
+        y = 0;
+        while y < (*c).params.height {
+            x = 0;
+            while x < (*c).params.width {
+                putc(
+                    *((*c).textbuffer).offset((x + y * (*c).params.width) as isize)
+                        as std::ffi::c_int,
+                    stderr,
+                );
+                x += 1;
+                x;
+            }
+            putc('\n' as i32, stderr);
+            y += 1;
+            y;
         }
+        putc('\u{c}' as i32, stderr);
         putc('\n' as i32, stderr);
-        y += 1;
-        y;
+        fflush(stderr);
     }
-    putc('\u{c}' as i32, stderr);
-    putc('\n' as i32, stderr);
-    fflush(stderr);
-}}
+}
 
 #[unsafe(no_mangle)]
 pub static mut stderr_d: aa_driver = unsafe {

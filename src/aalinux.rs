@@ -170,364 +170,377 @@ static mut vc: [*mut FILE; 10] = [0 as *const FILE as *mut FILE; 10];
 static mut nvcs: i64 = 0;
 static mut sizes: [[i64; 10]; 2] = [[0; 10]; 2];
 static mut cursor_visible: i64 = 1;
-unsafe fn linux_cursor(c: *mut aa_context, mode: i64) { unsafe {
-    cursor_visible = mode;
-    linux_gotoxy(c, cursorx, cursory);
-    if mode != 0 {
-        println!("\x1B[?25h\0");
-    } else {
-        println!("\x1B[?25l\0");
+unsafe fn linux_cursor(c: *mut aa_context, mode: i64) {
+    unsafe {
+        cursor_visible = mode;
+        linux_gotoxy(c, cursorx, cursory);
+        if mode != 0 {
+            println!("\x1B[?25h\0");
+        } else {
+            println!("\x1B[?25l\0");
+        }
+        fflush(stdout);
     }
-    fflush(stdout);
-}}
+}
 unsafe fn linux_init(
     p: *const aa_hardware_params,
     none: *const std::ffi::c_void,
     dest: *mut aa_hardware_params,
     params: *mut *mut std::ffi::c_void,
-) -> i64 { unsafe {
-    static mut registered: i64 = 0;
-    static mut font: aa_font = aa_font {
-        data: 0 as *const std::ffi::c_uchar,
-        height: 0,
-        name: 0 as *const std::ffi::c_char,
-        shortname: 0 as *const std::ffi::c_char,
-    };
-    static mut def: aa_hardware_params = {
-        let init = aa_hardware_params {
-            font: 0 as *const aa_font,
-            supported: 2 | 16 | 1 | 4 | (128 | 256),
-            minwidth: 0,
-            minheight: 0,
-            maxwidth: 0,
-            maxheight: 0,
-            recwidth: 0,
-            recheight: 0,
-            mmwidth: 0,
-            mmheight: 0,
-            width: 0,
+) -> i64 {
+    unsafe {
+        static mut registered: i64 = 0;
+        static mut font: aa_font = aa_font {
+            data: 0 as *const std::ffi::c_uchar,
             height: 0,
-            dimmul: 0.,
-            boldmul: 0.,
+            name: 0 as *const std::ffi::c_char,
+            shortname: 0 as *const std::ffi::c_char,
         };
-        init
-    };
-    let mut sbuf: stat = stat {
-        st_dev: 0,
-        st_ino: 0,
-        st_nlink: 0,
-        st_mode: 0,
-        st_uid: 0,
-        st_gid: 0,
-        __pad0: 0,
-        st_rdev: 0,
-        st_size: 0,
-        st_blksize: 0,
-        st_blocks: 0,
-        st_atim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        st_mtim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        st_ctim: timespec {
-            tv_sec: 0,
-            tv_nsec: 0,
-        },
-        __glibc_reserved: [0; 3],
-    };
-    let mut major = 0;
-    let mut minor = 0;
-    let mut fname: [std::ffi::c_char; 20] = [0; 20];
-    let mut tmp: [std::ffi::c_char; 256] = [0; 256];
-    let mut env: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
-    let mut vt = 0;
-    let mut i = 0;
-    let mut y = 0;
-    let mut fd = 0;
-    *dest = def;
-    fflush(stdout);
-    fd = dup(fileno(stderr));
-    fstat(fd, &mut sbuf);
-    major = (sbuf.st_rdev >> 8 as std::ffi::c_int) as std::ffi::c_int;
-    minor = (sbuf.st_rdev & 0xff as std::ffi::c_int as __dev_t) as std::ffi::c_int;
-    vt = minor;
-    close(fd);
-    if major != 4 || minor >= 64 as std::ffi::c_int {
-        return 0;
-    }
-    readonly = 0;
-    env = getenv(b"AAVCS\0" as *const u8 as *const std::ffi::c_char);
-    if !env.is_null() {
-        let mut p1 = 0 as std::ffi::c_int;
-        let mut p2 = 0;
-        nvcs = 0;
-        while *env.offset(p1 as isize) != 0 {
-            while *env.offset(p1 as isize) as std::ffi::c_int != 0
-                && *env.offset(p1 as isize) as std::ffi::c_int == ' ' as i32
-            {
-                p1 += 1;
-                p1;
+        static mut def: aa_hardware_params = {
+            let init = aa_hardware_params {
+                font: 0 as *const aa_font,
+                supported: 2 | 16 | 1 | 4 | (128 | 256),
+                minwidth: 0,
+                minheight: 0,
+                maxwidth: 0,
+                maxheight: 0,
+                recwidth: 0,
+                recheight: 0,
+                mmwidth: 0,
+                mmheight: 0,
+                width: 0,
+                height: 0,
+                dimmul: 0.,
+                boldmul: 0.,
+            };
+            init
+        };
+        let mut sbuf: stat = stat {
+            st_dev: 0,
+            st_ino: 0,
+            st_nlink: 0,
+            st_mode: 0,
+            st_uid: 0,
+            st_gid: 0,
+            __pad0: 0,
+            st_rdev: 0,
+            st_size: 0,
+            st_blksize: 0,
+            st_blocks: 0,
+            st_atim: timespec {
+                tv_sec: 0,
+                tv_nsec: 0,
+            },
+            st_mtim: timespec {
+                tv_sec: 0,
+                tv_nsec: 0,
+            },
+            st_ctim: timespec {
+                tv_sec: 0,
+                tv_nsec: 0,
+            },
+            __glibc_reserved: [0; 3],
+        };
+        let mut major = 0;
+        let mut minor = 0;
+        let mut fname: [std::ffi::c_char; 20] = [0; 20];
+        let mut tmp: [std::ffi::c_char; 256] = [0; 256];
+        let mut env: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
+        let mut vt = 0;
+        let mut i = 0;
+        let mut y = 0;
+        let mut fd = 0;
+        *dest = def;
+        fflush(stdout);
+        fd = dup(fileno(stderr));
+        fstat(fd, &mut sbuf);
+        major = (sbuf.st_rdev >> 8 as std::ffi::c_int) as std::ffi::c_int;
+        minor = (sbuf.st_rdev & 0xff as std::ffi::c_int as __dev_t) as std::ffi::c_int;
+        vt = minor;
+        close(fd);
+        if major != 4 || minor >= 64 as std::ffi::c_int {
+            return 0;
+        }
+        readonly = 0;
+        env = getenv(b"AAVCS\0" as *const u8 as *const std::ffi::c_char);
+        if !env.is_null() {
+            let mut p1 = 0 as std::ffi::c_int;
+            let mut p2 = 0;
+            nvcs = 0;
+            while *env.offset(p1 as isize) != 0 {
+                while *env.offset(p1 as isize) as std::ffi::c_int != 0
+                    && *env.offset(p1 as isize) as std::ffi::c_int == ' ' as i32
+                {
+                    p1 += 1;
+                    p1;
+                }
+                if *env.offset(p1 as isize) == 0 {
+                    break;
+                }
+                p2 = 0 as std::ffi::c_int;
+                while *env.offset(p1 as isize) as std::ffi::c_int != 0
+                    && *env.offset(p1 as isize) as std::ffi::c_int != ' ' as i32
+                {
+                    let fresh0 = p1;
+                    p1 = p1 + 1;
+                    let fresh1 = p2;
+                    p2 = p2 + 1;
+                    tmp[fresh1 as usize] = *env.offset(fresh0 as isize);
+                }
+                tmp[p2 as usize] = 0 as std::ffi::c_int as std::ffi::c_char;
+                vc[nvcs as usize] = fopen(
+                    tmp.as_mut_ptr(),
+                    b"w+\0" as *const u8 as *const std::ffi::c_char,
+                );
+                if (vc[nvcs as usize]).is_null() {
+                    vc[nvcs as usize] = fopen(
+                        tmp.as_mut_ptr(),
+                        b"w\0" as *const u8 as *const std::ffi::c_char,
+                    );
+                    readonly = 1;
+                }
+                if (vc[nvcs as usize]).is_null() {
+                    return 0;
+                }
+                nvcs += 1;
+                nvcs;
             }
-            if *env.offset(p1 as isize) == 0 {
-                break;
+        } else {
+            let tmp_bind = CString::new(format!("/dv/vcsa{}", vt)).unwrap();
+            let bytes = tmp_bind.as_bytes_with_nul();
+            for (i, &b) in bytes.iter().enumerate().take(20) {
+                fname[i] = b as i8;
             }
-            p2 = 0 as std::ffi::c_int;
-            while *env.offset(p1 as isize) as std::ffi::c_int != 0
-                && *env.offset(p1 as isize) as std::ffi::c_int != ' ' as i32
-            {
-                let fresh0 = p1;
-                p1 = p1 + 1;
-                let fresh1 = p2;
-                p2 = p2 + 1;
-                tmp[fresh1 as usize] = *env.offset(fresh0 as isize);
-            }
-            tmp[p2 as usize] = 0 as std::ffi::c_int as std::ffi::c_char;
-            vc[nvcs as usize] = fopen(
-                tmp.as_mut_ptr(),
+            vc[0 as std::ffi::c_int as usize] = fopen(
+                fname.as_mut_ptr(),
                 b"w+\0" as *const u8 as *const std::ffi::c_char,
             );
-            if (vc[nvcs as usize]).is_null() {
-                vc[nvcs as usize] = fopen(
+            if (vc[0 as std::ffi::c_int as usize]).is_null() {
+                vc[0 as std::ffi::c_int as usize] = fopen(
                     tmp.as_mut_ptr(),
                     b"w\0" as *const u8 as *const std::ffi::c_char,
                 );
                 readonly = 1;
             }
-            if (vc[nvcs as usize]).is_null() {
-                return 0;
-            }
-            nvcs += 1;
-            nvcs;
+            nvcs = 1;
         }
-    } else {
-        let tmp_bind = CString::new(format!("/dv/vcsa{}", vt)).unwrap();
-        let bytes = tmp_bind.as_bytes_with_nul();
-        for (i, &b) in bytes.iter().enumerate().take(20) {
-            fname[i] = b as i8;
+        if (vc[0 as usize]).is_null() {
+            return 0;
         }
-        vc[0 as std::ffi::c_int as usize] = fopen(
-            fname.as_mut_ptr(),
-            b"w+\0" as *const u8 as *const std::ffi::c_char,
-        );
-        if (vc[0 as std::ffi::c_int as usize]).is_null() {
-            vc[0 as std::ffi::c_int as usize] = fopen(
-                tmp.as_mut_ptr(),
-                b"w\0" as *const u8 as *const std::ffi::c_char,
-            );
-            readonly = 1;
-        }
-        nvcs = 1;
-    }
-    if (vc[0 as usize]).is_null() {
-        return 0;
-    }
-    if registered == 0 {
-        let mut data: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
-        fd = open(b"/dev/console\0" as *const u8 as *const std::ffi::c_char, 0);
-        if fd >= 0 {
-            let mut buf: [std::ffi::c_char; 32768] = [0; 32768];
-            let mut desc: consolefontdesc = consolefontdesc {
-                charcount: 0,
-                charheight: 0,
-                chardata: 0 as *mut std::ffi::c_char,
-            };
-            desc.chardata = buf.as_mut_ptr();
-            desc.charcount = 1024;
-            i = ioctl(fd, 0x4b6b, &mut desc as *mut consolefontdesc);
-            close(fd);
-            if i != 0 {
-                (*dest).font = &aa_font14;
-                (*dest).supported &= !(2);
-            } else {
-                font.name = b"Font used by your console\0" as *const u8 as *const std::ffi::c_char;
-                font.shortname = b"current\0" as *const u8 as *const std::ffi::c_char;
-                font.height = desc.charheight as i64;
-                data = malloc((desc.charheight * 256).into()) as *mut std::ffi::c_char;
-                font.data = data as *const std::ffi::c_uchar;
-                if !(font.data).is_null() {
-                    y = 0;
-                    i = 0;
-                    while i < 8192 {
-                        if i64::from(i % 32) < font.height {
-                            *data.offset(y as isize) = *(desc.chardata).offset(i as isize);
-                            y += 1;
-                            y;
+        if registered == 0 {
+            let mut data: *mut std::ffi::c_char = 0 as *mut std::ffi::c_char;
+            fd = open(b"/dev/console\0" as *const u8 as *const std::ffi::c_char, 0);
+            if fd >= 0 {
+                let mut buf: [std::ffi::c_char; 32768] = [0; 32768];
+                let mut desc: consolefontdesc = consolefontdesc {
+                    charcount: 0,
+                    charheight: 0,
+                    chardata: 0 as *mut std::ffi::c_char,
+                };
+                desc.chardata = buf.as_mut_ptr();
+                desc.charcount = 1024;
+                i = ioctl(fd, 0x4b6b, &mut desc as *mut consolefontdesc);
+                close(fd);
+                if i != 0 {
+                    (*dest).font = &aa_font14;
+                    (*dest).supported &= !(2);
+                } else {
+                    font.name =
+                        b"Font used by your console\0" as *const u8 as *const std::ffi::c_char;
+                    font.shortname = b"current\0" as *const u8 as *const std::ffi::c_char;
+                    font.height = desc.charheight as i64;
+                    data = malloc((desc.charheight * 256).into()) as *mut std::ffi::c_char;
+                    font.data = data as *const std::ffi::c_uchar;
+                    if !(font.data).is_null() {
+                        y = 0;
+                        i = 0;
+                        while i < 8192 {
+                            if i64::from(i % 32) < font.height {
+                                *data.offset(y as isize) = *(desc.chardata).offset(i as isize);
+                                y += 1;
+                                y;
+                            }
+                            i += 1;
+                            i;
                         }
-                        i += 1;
-                        i;
+                        aa_registerfont(&mut font);
+                        (*dest).font = &mut font;
                     }
-                    aa_registerfont(&mut font);
-                    (*dest).font = &mut font;
                 }
             }
         }
+        aa_recommendlow(
+            &mut aa_mouserecommended,
+            b"gpm\0" as *const u8 as *const std::ffi::c_char,
+        );
+        aa_recommendlow(
+            &mut aa_kbdrecommended,
+            b"linux\0" as *const u8 as *const std::ffi::c_char,
+        );
+        aa_recommendlow(
+            &mut aa_kbdrecommended,
+            b"slang\0" as *const u8 as *const std::ffi::c_char,
+        );
+        aa_recommendlow(
+            &mut aa_kbdrecommended,
+            b"curses\0" as *const u8 as *const std::ffi::c_char,
+        );
+        return 1;
     }
-    aa_recommendlow(
-        &mut aa_mouserecommended,
-        b"gpm\0" as *const u8 as *const std::ffi::c_char,
-    );
-    aa_recommendlow(
-        &mut aa_kbdrecommended,
-        b"linux\0" as *const u8 as *const std::ffi::c_char,
-    );
-    aa_recommendlow(
-        &mut aa_kbdrecommended,
-        b"slang\0" as *const u8 as *const std::ffi::c_char,
-    );
-    aa_recommendlow(
-        &mut aa_kbdrecommended,
-        b"curses\0" as *const u8 as *const std::ffi::c_char,
-    );
-    return 1;
-}}
-unsafe fn linux_uninit(c: *mut aa_context) { unsafe {
-    let mut i = 0;
-    i = 0;
-    while i < nvcs {
-        fclose(vc[i as usize]);
-        i += 1;
-        i;
+}
+unsafe fn linux_uninit(c: *mut aa_context) {
+    unsafe {
+        let mut i = 0;
+        i = 0;
+        while i < nvcs {
+            fclose(vc[i as usize]);
+            i += 1;
+            i;
+        }
     }
-}}
-unsafe fn linux_getsize(c: *mut aa_context, width: &mut i64, height: &mut i64) { unsafe {
-    let mut i = 0;
-    let mut scrn: C2RustUnnamed_0 = {
-        let init = C2RustUnnamed_0 {
-            lines: 0 as std::ffi::c_uchar,
-            cols: 0 as std::ffi::c_uchar,
-            x: 0 as std::ffi::c_uchar,
-            y: 0 as std::ffi::c_uchar,
+}
+unsafe fn linux_getsize(c: *mut aa_context, width: &mut i64, height: &mut i64) {
+    unsafe {
+        let mut i = 0;
+        let mut scrn: C2RustUnnamed_0 = {
+            let init = C2RustUnnamed_0 {
+                lines: 0 as std::ffi::c_uchar,
+                cols: 0 as std::ffi::c_uchar,
+                x: 0 as std::ffi::c_uchar,
+                y: 0 as std::ffi::c_uchar,
+            };
+            init
         };
-        init
-    };
-    *width = 0;
-    *height = 65536;
-    if readonly == 0 {
+        *width = 0;
+        *height = 65536;
+        if readonly == 0 {
+            i = 0;
+            while i < nvcs {
+                fseek(vc[i as usize], 0, 0);
+                fread(
+                    &mut scrn as *mut C2RustUnnamed_0 as *mut std::ffi::c_void,
+                    4,
+                    1,
+                    vc[i as usize],
+                );
+                sizes[0][i as usize] = scrn.cols as i64;
+                sizes[1][i as usize] = scrn.lines as i64;
+                *width = *width + scrn.cols as i64;
+                if *height > scrn.lines as i64 {
+                    *height = scrn.lines as i64;
+                }
+                i += 1;
+                i;
+            }
+        } else {
+            let mut ws: winsize = winsize {
+                ws_row: 0,
+                ws_col: 0,
+                ws_xpixel: 0,
+                ws_ypixel: 0,
+            };
+            if ioctl(
+                2 as std::ffi::c_int,
+                0x5413 as std::ffi::c_int as std::ffi::c_ulong,
+                &mut ws as *mut winsize,
+            ) == 0 as std::ffi::c_int
+            {
+                *width = ws.ws_col as i64 * nvcs;
+                *height = ws.ws_row as i64;
+            } else {
+                *width = 80;
+                *height = 25;
+            }
+        }
+        gpm_mx = (*width - 1) as i32;
+        gpm_my = (*height - 1) as i32;
+    }
+}
+unsafe fn linux_flush(c: *mut aa_context) {
+    unsafe {
+        let mut i = 0;
+        let mut x = 0;
+        let mut y = 0;
+        let mut xstart = 0;
+        let xend = 0;
+        let end = (*c).params.width * (*c).params.height;
+        let data: [std::ffi::c_uchar; 6] = [
+            0x7 as std::ffi::c_uchar,
+            0x8 as std::ffi::c_uchar,
+            0xf as std::ffi::c_uchar,
+            0xf as std::ffi::c_uchar,
+            0x70 as std::ffi::c_uchar,
+            0x17 as std::ffi::c_uchar,
+        ];
+        i = 0;
+        while i < nvcs {
+            fseek(vc[i as usize], 4, 0);
+            y = 0;
+            while y < (*c).params.height {
+                let start = y * (*c).params.width;
+                x = xstart;
+                while x < xstart + sizes[0][i as usize] {
+                    putc(
+                        *((*c).textbuffer).offset((x + start) as isize) as std::ffi::c_int,
+                        vc[i as usize],
+                    );
+                    if (*((*c).attrbuffer).offset((x + start) as isize)) < 7 {
+                        putc(
+                            data[*((*c).attrbuffer).offset((x + start) as isize) as usize]
+                                as std::ffi::c_int,
+                            vc[i as usize],
+                        );
+                    } else {
+                        putc(0x27 as std::ffi::c_int, vc[i as usize]);
+                    }
+                    x += 1;
+                    x;
+                }
+                y += 1;
+                y;
+            }
+            xstart += sizes[0][i as usize];
+            fflush(vc[i as usize]);
+            i += 1;
+            i;
+        }
+    }
+}
+unsafe fn linux_gotoxy(c: *mut aa_context, x: i64, y: i64) {
+    unsafe {
+        let mut n = 0;
+        let mut i = 0;
+        let mut scrn: C2RustUnnamed = C2RustUnnamed {
+            lines: 0,
+            cols: 0,
+            x: 0,
+            y: 0,
+        };
+        cursorx = x;
+        cursory = y;
         i = 0;
         while i < nvcs {
             fseek(vc[i as usize], 0, 0);
-            fread(
-                &mut scrn as *mut C2RustUnnamed_0 as *mut std::ffi::c_void,
+            if x >= n && x < n + sizes[0][i as usize] && cursor_visible != 0 {
+                scrn.x = (x - n) as std::ffi::c_uchar;
+                scrn.y = y as std::ffi::c_uchar;
+                scrn.lines = sizes[0][i as usize] as std::ffi::c_uchar;
+                scrn.cols = sizes[1][i as usize] as std::ffi::c_uchar;
+            } else {
+                scrn.x = 0 as std::ffi::c_uchar;
+                scrn.y = 0 as std::ffi::c_uchar;
+                scrn.lines = sizes[0][i as usize] as std::ffi::c_uchar;
+                scrn.cols = sizes[1][i as usize] as std::ffi::c_uchar;
+            }
+            fwrite(
+                &mut scrn as *mut C2RustUnnamed as *const std::ffi::c_void,
                 4,
                 1,
                 vc[i as usize],
             );
-            sizes[0][i as usize] = scrn.cols as i64;
-            sizes[1][i as usize] = scrn.lines as i64;
-            *width = *width + scrn.cols as i64;
-            if *height > scrn.lines as i64 {
-                *height = scrn.lines as i64;
-            }
+            n += sizes[0][i as usize];
             i += 1;
-            i;
         }
-    } else {
-        let mut ws: winsize = winsize {
-            ws_row: 0,
-            ws_col: 0,
-            ws_xpixel: 0,
-            ws_ypixel: 0,
-        };
-        if ioctl(
-            2 as std::ffi::c_int,
-            0x5413 as std::ffi::c_int as std::ffi::c_ulong,
-            &mut ws as *mut winsize,
-        ) == 0 as std::ffi::c_int
-        {
-            *width = ws.ws_col as i64 * nvcs;
-            *height = ws.ws_row as i64;
-        } else {
-            *width = 80;
-            *height = 25;
-        }
-    }
-    gpm_mx = (*width - 1) as i32;
-    gpm_my = (*height - 1) as i32;
-}}
-unsafe fn linux_flush(c: *mut aa_context) { unsafe {
-    let mut i = 0;
-    let mut x = 0;
-    let mut y = 0;
-    let mut xstart = 0;
-    let xend = 0;
-    let end = (*c).params.width * (*c).params.height;
-    let data: [std::ffi::c_uchar; 6] = [
-        0x7 as std::ffi::c_uchar,
-        0x8 as std::ffi::c_uchar,
-        0xf as std::ffi::c_uchar,
-        0xf as std::ffi::c_uchar,
-        0x70 as std::ffi::c_uchar,
-        0x17 as std::ffi::c_uchar,
-    ];
-    i = 0;
-    while i < nvcs {
-        fseek(vc[i as usize], 4, 0);
-        y = 0;
-        while y < (*c).params.height {
-            let start = y * (*c).params.width;
-            x = xstart;
-            while x < xstart + sizes[0][i as usize] {
-                putc(
-                    *((*c).textbuffer).offset((x + start) as isize) as std::ffi::c_int,
-                    vc[i as usize],
-                );
-                if (*((*c).attrbuffer).offset((x + start) as isize)) < 7 {
-                    putc(
-                        data[*((*c).attrbuffer).offset((x + start) as isize) as usize]
-                            as std::ffi::c_int,
-                        vc[i as usize],
-                    );
-                } else {
-                    putc(0x27 as std::ffi::c_int, vc[i as usize]);
-                }
-                x += 1;
-                x;
-            }
-            y += 1;
-            y;
-        }
-        xstart += sizes[0][i as usize];
         fflush(vc[i as usize]);
-        i += 1;
-        i;
     }
-}}
-unsafe fn linux_gotoxy(c: *mut aa_context, x: i64, y: i64) { unsafe {
-    let mut n = 0;
-    let mut i = 0;
-    let mut scrn: C2RustUnnamed = C2RustUnnamed {
-        lines: 0,
-        cols: 0,
-        x: 0,
-        y: 0,
-    };
-    cursorx = x;
-    cursory = y;
-    i = 0;
-    while i < nvcs {
-        fseek(vc[i as usize], 0, 0);
-        if x >= n && x < n + sizes[0][i as usize] && cursor_visible != 0 {
-            scrn.x = (x - n) as std::ffi::c_uchar;
-            scrn.y = y as std::ffi::c_uchar;
-            scrn.lines = sizes[0][i as usize] as std::ffi::c_uchar;
-            scrn.cols = sizes[1][i as usize] as std::ffi::c_uchar;
-        } else {
-            scrn.x = 0 as std::ffi::c_uchar;
-            scrn.y = 0 as std::ffi::c_uchar;
-            scrn.lines = sizes[0][i as usize] as std::ffi::c_uchar;
-            scrn.cols = sizes[1][i as usize] as std::ffi::c_uchar;
-        }
-        fwrite(
-            &mut scrn as *mut C2RustUnnamed as *const std::ffi::c_void,
-            4,
-            1,
-            vc[i as usize],
-        );
-        n += sizes[0][i as usize];
-        i += 1;
-    }
-    fflush(vc[i as usize]);
-}}
+}

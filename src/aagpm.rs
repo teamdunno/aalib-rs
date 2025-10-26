@@ -69,63 +69,74 @@ static mut mousebuttons: i32 = 0;
 pub unsafe extern "C" fn __gpm_user_handler(
     event: *mut Gpm_Event,
     data: *mut std::ffi::c_void,
-) -> i32 { unsafe {
-    mousex = (*event).x as i64;
-    mousey = (*event).y as i64;
-    mousebuttons = (*event).buttons as i32;
-    (*event).type_0 = ::core::mem::transmute::<std::ffi::c_uint, Gpm_Etype>(
-        (*event).type_0 as std::ffi::c_uint & GPM_UP as i32 as std::ffi::c_uint,
-    );
-    if (*event).type_0 as u64 != 0 {
-        mousebuttons = 0 as i32;
+) -> i32 {
+    unsafe {
+        mousex = (*event).x as i64;
+        mousey = (*event).y as i64;
+        mousebuttons = (*event).buttons as i32;
+        (*event).type_0 = ::core::mem::transmute::<std::ffi::c_uint, Gpm_Etype>(
+            (*event).type_0 as std::ffi::c_uint & GPM_UP as i32 as std::ffi::c_uint,
+        );
+        if (*event).type_0 as u64 != 0 {
+            mousebuttons = 0 as i32;
+        }
+        return 0o631 as i32;
     }
-    return 0o631 as i32;
-}}
-unsafe fn gpm_init(context: *mut aa_context, mode: i64) -> i64 { unsafe {
-    conn.eventMask = ((if mode & 1 != 0 {
-        GPM_MOVE | GPM_DRAG
-    } else {
-        0
-    }) | GPM_DOWN
-        | GPM_UP) as std::ffi::c_ushort;
-    conn.defaultMask = 0 as i32 as std::ffi::c_ushort;
-    conn.maxMod = !(0 as i32) as std::ffi::c_ushort;
-    conn.minMod = 0 as i32 as std::ffi::c_ushort;
-    if Gpm_Open(&mut conn, 0 as i32) == -(1 as std::ffi::c_int) {
-        return 0;
+}
+unsafe fn gpm_init(context: *mut aa_context, mode: i64) -> i64 {
+    unsafe {
+        conn.eventMask = ((if mode & 1 != 0 {
+            GPM_MOVE | GPM_DRAG
+        } else {
+            0
+        }) | GPM_DOWN
+            | GPM_UP) as std::ffi::c_ushort;
+        conn.defaultMask = 0 as i32 as std::ffi::c_ushort;
+        conn.maxMod = !(0 as i32) as std::ffi::c_ushort;
+        conn.minMod = 0 as i32 as std::ffi::c_ushort;
+        if Gpm_Open(&mut conn, 0 as i32) == -(1 as std::ffi::c_int) {
+            return 0;
+        }
+        if gpm_fd < 0 as i32 {
+            return 0;
+        }
+        __curses_usegpm = 1 as i32;
+        gpm_handler = Some(
+            __gpm_user_handler
+                as unsafe extern "C" fn(*mut Gpm_Event, *mut std::ffi::c_void) -> i32,
+        );
+        gpm_visiblepointer = 1 as i32;
+        gpm_hflag = 1 as i32;
+        return 1;
     }
-    if gpm_fd < 0 as i32 {
-        return 0;
+}
+unsafe fn gpm_uninit(c: *mut aa_context) {
+    unsafe {
+        __curses_usegpm = 0 as i32;
+        Gpm_Close();
     }
-    __curses_usegpm = 1 as i32;
-    gpm_handler = Some(
-        __gpm_user_handler as unsafe extern "C" fn(*mut Gpm_Event, *mut std::ffi::c_void) -> i32,
-    );
-    gpm_visiblepointer = 1 as i32;
-    gpm_hflag = 1 as i32;
-    return 1;
-}}
-unsafe fn gpm_uninit(c: *mut aa_context) { unsafe {
-    __curses_usegpm = 0 as i32;
-    Gpm_Close();
-}}
-unsafe fn gpm_mouse(c: *mut aa_context, x: *mut i64, y: *mut i64, b: *mut i64) { unsafe {
-    *x = mousex;
-    *y = mousey;
-    *b = 0;
-    if mousebuttons & 4 != 0 {
-        *b |= 1;
+}
+unsafe fn gpm_mouse(c: *mut aa_context, x: *mut i64, y: *mut i64, b: *mut i64) {
+    unsafe {
+        *x = mousex;
+        *y = mousey;
+        *b = 0;
+        if mousebuttons & 4 != 0 {
+            *b |= 1;
+        }
+        if mousebuttons & 2 != 0 {
+            *b |= 2;
+        }
+        if mousebuttons & 1 != 0 {
+            *b |= 4;
+        }
     }
-    if mousebuttons & 2 != 0 {
-        *b |= 2;
+}
+unsafe fn gpm_mousemode(c: *mut aa_context, m: i64) {
+    unsafe {
+        gpm_visiblepointer = m as i32;
     }
-    if mousebuttons & 1 != 0 {
-        *b |= 4;
-    }
-}}
-unsafe fn gpm_mousemode(c: *mut aa_context, m: i64) { unsafe {
-    gpm_visiblepointer = m as i32;
-}}
+}
 
 pub static mut mouse_gpm_d: aa_mousedriver = unsafe {
     {
