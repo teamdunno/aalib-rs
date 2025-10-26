@@ -114,12 +114,12 @@ pub struct aa_edit {
 }
 #[derive(Copy, Clone)]
 pub struct aa_renderparams {
-    pub bright: i64,
-    pub contrast: i64,
-    pub gamma: std::ffi::c_float,
+    pub bright: i32,
+    pub contrast: i32,
+    pub gamma: f32,
     pub dither: aa_dithering_mode,
-    pub inversion: i64,
-    pub randomval: i64,
+    pub inversion: i32,
+    pub randomval: i32,
 }
 #[derive(Copy, Clone)]
 pub struct aa_linkedlist {

@@ -1,3 +1,8 @@
+use crate::aalinux::linux_d;
+use crate::aaslang::slang_d;
+use crate::aastdout::stderr_d;
+use crate::aastdout::stdout_d;
+
 use super::aalib::aa_init;
 use super::aarec::aa_displayrecommended;
 use super::aarec::aa_getfirst;
@@ -5,11 +10,6 @@ use super::aastructs::*;
 unsafe extern "C" {
     fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
     fn free(_: *mut std::ffi::c_void);
-    static linux_d: aa_driver;
-    static slang_d: aa_driver;
-    static stdout_d: aa_driver;
-    static stderr_d: aa_driver;
-    static X11_d: aa_driver;
     fn strcmp(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> std::ffi::c_int;
 }
 pub static mut aa_drivers: [*const aa_driver; 5] = unsafe {

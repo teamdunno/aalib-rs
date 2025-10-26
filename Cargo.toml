@@ -10,3 +10,4 @@ crate-type = ["rlib"]
 [dependencies]
 c2rust-bitfields= "0.3"
 libc= "0.2"
+termion = "4.0.5"

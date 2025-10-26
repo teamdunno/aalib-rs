@@ -1,3 +1,5 @@
+use crate::aatermion::kbd_termion_d;
+
 use super::aain::aa_initkbd;
 use super::aarec::{aa_getfirst, aa_kbdrecommended};
 use super::aastructs::*;
@@ -5,18 +7,11 @@ use super::aastructs::*;
 unsafe extern "C" {
     fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
     fn free(_: *mut std::ffi::c_void);
-    static kbd_slang_d: aa_kbddriver;
-    static kbd_stdin_d: aa_kbddriver;
-    static kbd_X11_d: aa_kbddriver;
-    static kbd_linux_d: aa_kbddriver;
     fn strcmp(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> std::ffi::c_int;
 }
-pub static mut aa_kbddrivers: [*const aa_kbddriver; 5] = unsafe {
+pub static mut aa_kbddrivers: [*const aa_kbddriver; 2] = unsafe {
     [
-        &kbd_linux_d as *const aa_kbddriver,
-        &kbd_X11_d as *const aa_kbddriver,
-        &kbd_slang_d as *const aa_kbddriver,
-        &kbd_stdin_d as *const aa_kbddriver,
+        &kbd_termion_d as *const aa_kbddriver,
         0 as *const aa_kbddriver,
     ]
 };

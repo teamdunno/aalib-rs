@@ -235,8 +235,6 @@ unsafe fn slang_getsize(c: *mut aa_context, width: &mut i64, height: &mut i64) {
         );
         *width = SLtt_Screen_Cols as i64;
         *height = SLtt_Screen_Rows as i64;
-        gpm_mx = *width as i32;
-        gpm_my = *height as i32;
     }
 }
 unsafe fn slang_setattr(c: *mut aa_context, attr: i64) {

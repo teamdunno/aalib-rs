@@ -1,3 +1,5 @@
+use crate::aatermion::mouse_termion_d;
+
 use super::aain::aa_initmouse;
 use super::aarec::aa_getfirst;
 use super::aastructs::*;
@@ -5,16 +7,13 @@ use super::aastructs::*;
 unsafe extern "C" {
     fn printf(_: *const std::ffi::c_char, _: ...) -> std::ffi::c_int;
     fn free(_: *mut std::ffi::c_void);
-    static mouse_gpm_d: aa_mousedriver;
-    static mouse_X11_d: aa_mousedriver;
     static mut aa_mouserecommended: *mut aa_linkedlist;
     fn strcmp(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> std::ffi::c_int;
 }
 
-pub static mut aa_mousedrivers: [*const aa_mousedriver; 3] = unsafe {
+pub static mut aa_mousedrivers: [*const aa_mousedriver; 2] = unsafe {
     [
-        &mouse_X11_d as *const aa_mousedriver,
-        &mouse_gpm_d as *const aa_mousedriver,
+        &mouse_termion_d as *const aa_mousedriver,
         0 as *const aa_mousedriver,
     ]
 };

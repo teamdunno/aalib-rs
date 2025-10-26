@@ -17,7 +17,6 @@ pub mod aafastre;
 pub mod aaflush;
 pub mod aafont;
 pub mod aafonts;
-pub mod aagpm;
 pub mod aahelp;
 pub mod aaimage;
 pub mod aaimgheight;
@@ -26,7 +25,6 @@ pub mod aain;
 pub mod aakbdreg;
 pub mod aalib;
 pub mod aalinux;
-pub mod aalinuxkbd;
 pub mod aamasks;
 pub mod aamem;
 pub mod aamktabl;
@@ -45,15 +43,11 @@ pub mod aasave;
 pub mod aascrheight;
 pub mod aascrwidth;
 pub mod aaslang;
-pub mod aaslnkbd;
-pub mod aastdin;
 pub mod aastdout;
 pub mod aastructs;
+pub mod aatermion;
 pub mod aatext;
 pub mod aavyhen;
-// pub mod aax;
-// pub mod aaxkbd;
-// pub mod aaxmouse;
 pub mod font14;
 pub mod font16;
 pub mod font8;
@@ -67,6 +61,8 @@ pub mod fontx16;
 
 #[cfg(test)]
 mod tests {
+    use crate::aain::aa_getkey;
+
     use super::{
         aaattributes::*,
         aaflush::aa_flush,
@@ -86,13 +82,44 @@ mod tests {
         aascrwidth::aa_scrwidth,
         aastructs::*,
     };
-    use std::{ffi::CString, thread, time::Duration};
+    use std::{collections::HashMap, env, ffi::CString, thread, time::Duration};
 
     #[test]
     fn tests() {
+        let vars = env::vars().collect::<HashMap<String, String>>();
         // avoid tests running at the same time
+        if vars.get("INTERACTIVE") == Some(&"1".to_owned()) {
+            get_text();
+        }
+
         fill_pixels();
         flashing_text();
+    }
+
+    fn get_text() {
+        let mut params: aa_hardware_params = unsafe { std::mem::zeroed() };
+        params.supported = (AA_NORMAL_MASK | AA_BOLD_MASK | AA_DIM_MASK);
+        let context = unsafe { aa_autoinit(&params) };
+
+        let text = CString::new(r#"press "y""#).unwrap();
+
+        aa_autoinitkbd(context, 0);
+
+        aa_puts(
+            context,
+            ((aa_scrwidth(context) - text.to_string_lossy().to_string().len() as i64) / 2).into(),
+            (aa_scrheight(context) / 2).into(),
+            AA_DIM,
+            text.as_ptr(),
+        );
+        aa_flush(context);
+
+        loop {
+            let key: char = aa_getkey(context, 1) as i64 as u8 as char;
+            if key == 'y' {
+                return;
+            }
+        }
     }
 
     fn flashing_text() {
@@ -161,7 +188,7 @@ mod tests {
         let mut finished = false;
         while !finished {
             if x < aa_imgwidth(context) {
-                aa_putpixel(context, x, y, 255);
+                aa_putpixel(context, x.into(), y.into(), 255);
                 unsafe {
                     aa_render(
                         context,
@@ -179,7 +206,7 @@ mod tests {
                 x = 0;
             }
 
-            if y == aa_imgheight(context) {
+            if y == aa_imgheight(context).into() {
                 finished = true;
             }
         }
@@ -189,7 +216,7 @@ mod tests {
         let mut finished = false;
         while !finished {
             if x < aa_imgwidth(context) {
-                aa_putpixel(context, x, y, 0);
+                aa_putpixel(context, x.into(), y.into(), 0);
                 unsafe {
                     aa_render(
                         context,
@@ -207,7 +234,7 @@ mod tests {
                 x = 0;
             }
 
-            if y == aa_imgheight(context) {
+            if y == aa_imgheight(context).into() {
                 finished = true;
             }
         }

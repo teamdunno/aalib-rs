@@ -384,7 +384,7 @@ pub fn aa_parseoptions_c(
                     );
                     return 0 as std::ffi::c_int;
                 }
-                (*r).randomval = atol(*argv.offset(i as isize));
+                (*r).randomval = atol(*argv.offset(i as isize)) as i32;
                 aa_remove(i, argc, argv);
                 i -= 1;
                 i;
@@ -401,7 +401,7 @@ pub fn aa_parseoptions_c(
                     );
                     return 0 as std::ffi::c_int;
                 }
-                (*r).bright = atol(*argv.offset(i as isize));
+                (*r).bright = atol(*argv.offset(i as isize)) as i32;
                 aa_remove(i, argc, argv);
                 i -= 1;
                 i;
@@ -419,7 +419,7 @@ pub fn aa_parseoptions_c(
                     );
                     return 0 as std::ffi::c_int;
                 }
-                (*r).contrast = atol(*argv.offset(i as isize));
+                (*r).contrast = atol(*argv.offset(i as isize)) as i32;
                 aa_remove(i, argc, argv);
                 i -= 1;
                 i;

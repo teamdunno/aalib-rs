@@ -452,8 +452,6 @@ unsafe fn linux_getsize(c: *mut aa_context, width: &mut i64, height: &mut i64) {
                 *height = 25;
             }
         }
-        gpm_mx = (*width - 1) as i32;
-        gpm_my = (*height - 1) as i32;
     }
 }
 unsafe fn linux_flush(c: *mut aa_context) {
