@@ -1,6 +1,4 @@
 use crate::aalinux::linux_d;
-use crate::aaslang::slang_d;
-use crate::aastdout::stderr_d;
 use crate::aastdout::stdout_d;
 
 use super::aalib::aa_init;
@@ -12,12 +10,10 @@ unsafe extern "C" {
     fn free(_: *mut std::ffi::c_void);
     fn strcmp(_: *const std::ffi::c_char, _: *const std::ffi::c_char) -> std::ffi::c_int;
 }
-pub static mut aa_drivers: [*const aa_driver; 5] = unsafe {
+pub static mut aa_drivers: [*const aa_driver; 3] = unsafe {
     [
         &linux_d as *const aa_driver,
-        &slang_d as *const aa_driver,
         &stdout_d as *const aa_driver,
-        &stderr_d as *const aa_driver,
         0 as *const aa_driver,
     ]
 };

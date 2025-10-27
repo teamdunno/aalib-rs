@@ -1,47 +1,10 @@
+use std::{
+    ffi::c_char,
+    io::{Write, stderr, stdout},
+};
+
 use super::aastructs::*;
-use ::c2rust_bitfields;
-unsafe extern "C" {
-    static mut stdout: *mut FILE;
-    static mut stderr: *mut FILE;
-    fn fflush(__stream: *mut FILE) -> std::ffi::c_int;
-    fn putc(__c: std::ffi::c_int, __stream: *mut FILE) -> std::ffi::c_int;
-}
-pub type __off_t = std::ffi::c_long;
-pub type __off64_t = std::ffi::c_long;
-#[derive(Copy, Clone, BitfieldStruct)]
-#[repr(C)]
-pub struct _IO_FILE {
-    pub _flags: std::ffi::c_int,
-    pub _IO_read_ptr: *mut std::ffi::c_char,
-    pub _IO_read_end: *mut std::ffi::c_char,
-    pub _IO_read_base: *mut std::ffi::c_char,
-    pub _IO_write_base: *mut std::ffi::c_char,
-    pub _IO_write_ptr: *mut std::ffi::c_char,
-    pub _IO_write_end: *mut std::ffi::c_char,
-    pub _IO_buf_base: *mut std::ffi::c_char,
-    pub _IO_buf_end: *mut std::ffi::c_char,
-    pub _IO_save_base: *mut std::ffi::c_char,
-    pub _IO_backup_base: *mut std::ffi::c_char,
-    pub _IO_save_end: *mut std::ffi::c_char,
-    pub _chain: *mut _IO_FILE,
-    pub _fileno: std::ffi::c_int,
-    #[bitfield(name = "_flags2", ty = "std::ffi::c_int", bits = "0..=23")]
-    pub _flags2: [u8; 3],
-    pub _short_backupbuf: [std::ffi::c_char; 1],
-    pub _old_offset: __off_t,
-    pub _cur_column: std::ffi::c_ushort,
-    pub _vtable_offset: std::ffi::c_schar,
-    pub _shortbuf: [std::ffi::c_char; 1],
-    pub _lock: *mut std::ffi::c_void,
-    pub _offset: __off64_t,
-    pub _freeres_list: *mut _IO_FILE,
-    pub _freeres_buf: *mut std::ffi::c_void,
-    pub _prevchain: *mut *mut _IO_FILE,
-    pub _mode: std::ffi::c_int,
-    pub _unused2: [std::ffi::c_char; 20],
-}
-pub type _IO_lock_t = ();
-pub type FILE = _IO_FILE;
+
 unsafe fn stdout_init(
     p: *const aa_hardware_params,
     none: *const std::ffi::c_void,
@@ -73,30 +36,34 @@ unsafe fn stdout_init(
     }
 }
 unsafe fn stdout_uninit(_: *mut aa_context) {}
-unsafe fn stdout_getsize(_: *mut aa_context, _: &mut i64, _: &mut i64) {}
+unsafe fn stdout_getsize(_: *mut aa_context, x: &mut i64, y: &mut i64) {
+    unsafe fn stdout_getsize(_: *mut aa_context, x: &mut i64, y: &mut i64) {
+        let (x_termion, y_termion) = termion::terminal_size().unwrap();
+
+        *x = x_termion as i64;
+        *y = y_termion as i64;
+    }
+}
 unsafe fn stdout_flush(c: *mut aa_context) {
     unsafe {
         let mut x = 0;
         let mut y = 0;
-        y = 0;
+        let mut stdout = stdout();
         while y < (*c).params.height {
             x = 0;
             while x < (*c).params.width {
-                putc(
-                    *((*c).textbuffer).offset((x + y * (*c).params.width) as isize)
-                        as std::ffi::c_int,
-                    stdout,
-                );
+                let character = *((*c).textbuffer).offset((x + y * (*c).params.width) as isize)
+                    as std::ffi::c_int as u8 as char;
+                write!(stdout, "{character}");
                 x += 1;
                 x;
             }
-            putc('\n' as i32, stdout);
+            write!(stdout, "\n");
             y += 1;
-            y;
         }
-        putc('\u{c}' as i32, stdout);
-        putc('\n' as i32, stdout);
-        fflush(stdout);
+        write!(stdout, "\n");
+
+        stdout.flush();
     }
 }
 unsafe fn stdout_gotoxy(_: *mut aa_context, _: i64, _: i64) {}
@@ -123,25 +90,22 @@ unsafe fn stderr_flush(c: *mut aa_context) {
     unsafe {
         let mut x = 0;
         let mut y = 0;
-        y = 0;
+        let mut stderr = stderr();
         while y < (*c).params.height {
             x = 0;
             while x < (*c).params.width {
-                putc(
-                    *((*c).textbuffer).offset((x + y * (*c).params.width) as isize)
-                        as std::ffi::c_int,
-                    stderr,
-                );
+                let character = *((*c).textbuffer).offset((x + y * (*c).params.width) as isize)
+                    as std::ffi::c_int as u8 as char;
+                write!(stderr, "{character}");
                 x += 1;
                 x;
             }
-            putc('\n' as i32, stderr);
+            write!(stderr, "\n");
             y += 1;
-            y;
         }
-        putc('\u{c}' as i32, stderr);
-        putc('\n' as i32, stderr);
-        fflush(stderr);
+        write!(stderr, "\n");
+
+        stderr.flush();
     }
 }
 
